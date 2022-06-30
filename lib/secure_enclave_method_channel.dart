@@ -38,9 +38,10 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<String?> getPublicKey(String tag) async {
+  Future<String?> getPublicKey(String tag, bool isRequiresBiometric) async {
     final key = await methodChannel.invokeMethod<String>('getPublicKeyString', {
       "tag": tag,
+      "isRequiresBiometric": isRequiresBiometric
     });
     return key;
   }

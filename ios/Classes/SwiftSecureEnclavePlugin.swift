@@ -41,9 +41,10 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
       case "getPublicKeyString":
           let param = call.arguments as? Dictionary<String, Any>
           let tag = param!["tag"] as! String
+          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
           
           do{
-              let key = try core.getPublicKeyString(tag: tag)
+              let key = try core.getPublicKeyString(tag: tag, isRequiresBiometric: isRequiresBiometric)
               result(key)
           } catch {
               print("Error info: \(error)")

@@ -19,7 +19,7 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   }
 
   @override
-  Future<String?> getPublicKey(String tag) {
-    return SecureEnclavePlatform.instance.getPublicKey(tag);
+  Future<String?> getPublicKey(String tag, bool isRequiresBiometric) {
+    return SecureEnclavePlatform.instance.getPublicKey(tag, isRequiresBiometric);
   }
 }

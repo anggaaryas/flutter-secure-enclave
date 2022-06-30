@@ -46,8 +46,8 @@ class _MyAppState extends State<MyApp> {
     }));
   }
 
-  void getPublicKey(){
-    _secureEnclavePlugin.getPublicKey(tag).then((value) => print("publick key   =   $value"));
+  void getPublicKey(bool isRequiresBiometric){
+    _secureEnclavePlugin.getPublicKey(tag, isRequiresBiometric).then((value) => print("publick key   =   $value"));
   }
 
   @override

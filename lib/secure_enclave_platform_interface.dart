@@ -34,5 +34,5 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
 abstract class SecureEnclaveBehaviour {
   Future<Uint8List?> encrypt(String tag, String message, bool isRequiresBiometric);
   Future<String?> decrypt(String tag, Uint8List message, bool isRequiresBiometric);
-  Future<String?> getPublicKey(String tag);
+  Future<String?> getPublicKey(String tag, bool isRequiresBiometric);
 }

@@ -10,15 +10,12 @@ import LocalAuthentication
 import CommonCrypto
 
 class Core{
-    var key: SecKey?
-    var cipherTextData: Data?
-    var signature: Data?
     
     enum CustomError: Error {
         case runtimeError(String)
     }
     
-    static func removeKey(name: String) {
+    func removeKey(name: String) {
         let tag = name.data(using: .utf8)!
         let query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
@@ -28,9 +25,8 @@ class Core{
         SecItemDelete(query as CFDictionary)
     }
     
-    static func makeAndStoreKey(name: String,
+    private func makeAndStorePrivateKey(name: String,
                                 requiresBiometry: Bool) throws -> SecKey {
-        removeKey(name: name)
 
         let flags: SecAccessControlCreateFlags
         if #available(iOS 11.3, *) {
@@ -40,36 +36,64 @@ class Core{
             flags = requiresBiometry ?
                 [.privateKeyUsage, .touchIDCurrentSet] : .privateKeyUsage
         }
+        
+        var accessError: Unmanaged<CFError>?
+        
         let access =
             SecAccessControlCreateWithFlags(kCFAllocatorDefault,
                                             kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
                                             flags,
-                                            nil)!
-        let tag = name.data(using: .utf8)!
-        let attributes: [String: Any] = [
-            kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-            kSecAttrKeySizeInBits as String     : 256,
-            kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
-            kSecPrivateKeyAttrs as String : [
-                kSecAttrIsPermanent as String       : true,
-                kSecAttrApplicationTag as String    : tag,
-                kSecAttrAccessControl as String     : access
-            ]
-        ]
+                                            &accessError)!
         
-        var error: Unmanaged<CFError>?
-        if #available(iOS 10.0, *) {
-            guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
-                throw error!.takeRetainedValue() as Error
+        if let error = accessError {
+            throw error.takeRetainedValue() as Error
+        }
+        
+        let tag = name.data(using: .utf8)
+        if let tag = tag {
+            
+            let attributes : CFDictionary
+            
+            if TARGET_OS_SIMULATOR != 0 {
+                // target is current running in the simulator
+                attributes = [
+                        kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+                        kSecAttrKeySizeInBits as String     : 256,
+                        kSecPrivateKeyAttrs as String : [
+                            kSecAttrIsPermanent as String       : true,
+                            kSecAttrApplicationTag as String    : tag,
+                            kSecAttrAccessControl as String     : access
+                        ]
+                ] as CFDictionary
+            } else {
+                attributes = [
+                        kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+                        kSecAttrKeySizeInBits as String     : 256,
+                        kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
+                        kSecPrivateKeyAttrs as String : [
+                            kSecAttrIsPermanent as String       : true,
+                            kSecAttrApplicationTag as String    : tag,
+                            kSecAttrAccessControl as String     : access
+                        ]
+                ] as CFDictionary
             }
             
-            return privateKey
+            var error: Unmanaged<CFError>?
+            if #available(iOS 10.0, *) {
+                guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
+                    throw error!.takeRetainedValue() as Error
+                }
+                return privateKey
+            } else {
+                throw CustomError.runtimeError("OS < 10")
+            }
         } else {
-            throw error!.takeRetainedValue() as Error
+            // tag error
+            throw CustomError.runtimeError("Invalid TAG") as Error
         }
     }
     
-    static func loadKey(name: String) -> SecKey? {
+    private func loadKey(name: String) throws -> SecKey? {
         let tag = name.data(using: .utf8)!
         let query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
@@ -81,29 +105,35 @@ class Core{
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         guard status == errSecSuccess else {
-            return nil
+            if status == errSecNotAvailable || status == errSecItemNotFound {
+                return nil
+            } else {
+                if #available(iOS 11.3, *) {
+                    throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+                } else {
+                    throw CustomError.runtimeError("Failed Load key")
+                }
+            }
         }
+        
+ 
         return (item as! SecKey)
+      
     }
     
-    private func prepareKey(keyName: String, isRequiresBiometric: Bool) -> Bool {
-//        defer {
-//            showPublicKey()
-//        }
-        key = Core.loadKey(name: keyName)
-        guard key == nil else {
-            return true
-        }
+    private func preparePrivateKey(keyName: String, isRequiresBiometric: Bool) throws -> SecKey {
         do {
-            key = try Core.makeAndStoreKey(name: keyName,
-                                                     requiresBiometry: isRequiresBiometric)
-            return true
-        } catch _ {
-            return false
+            var key = try loadKey(name: keyName)
+            if key == nil {
+                key = try makeAndStorePrivateKey(name: keyName, requiresBiometry: isRequiresBiometric)
+            }
+            return key!
+        } catch {
+            throw error
         }
     }
     
-    static func getBioSecAccessControl() -> SecAccessControl {
+    private func getBioSecAccessControl() -> SecAccessControl {
         var access: SecAccessControl?
         var error: Unmanaged<CFError>?
         
@@ -122,63 +152,18 @@ class Core{
         return access!
     }
     
-    private func generatePairKey(tag: Data) throws -> Bool {
-        var accessError: Unmanaged<CFError>?
-        let flags: SecAccessControlCreateFlags
-        if #available(iOS 11.3, *) {
-            flags =
-                [.privateKeyUsage, .biometryCurrentSet]
-        } else {
-            flags = 
-                [.privateKeyUsage, .touchIDCurrentSet]
-        }
-        let access = SecAccessControlCreateWithFlags(
-            kCFAllocatorDefault,
-            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-            flags,
-            &accessError
-        ) as Any
-        
-        if let error = accessError {
-            throw error.takeRetainedValue() as Error
-        }
-        
-        let attributes = [
-                kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-                kSecAttrKeySizeInBits as String     : 256,
-                kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
-                kSecPrivateKeyAttrs as String : [
-                    kSecAttrIsPermanent as String       : true,
-                    kSecAttrApplicationTag as String    : tag,
-                    kSecAttrAccessControl as String     : access
-                ]
-        ] as CFDictionary
-        
-        var createKeyError: Unmanaged<CFError>?
-        
+    func getPublicKeyString(tag: String, isRequiresBiometric: Bool) throws -> String? {
         if #available(iOS 10.0, *) {
+            let privateKey : SecKey
+            let publicKey : SecKey
             
-            SecKeyCreateRandomKey(attributes as CFDictionary, &createKeyError)
-            
-            if let error = createKeyError {
-                throw error.takeRetainedValue() as Error
+            do{
+                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+                publicKey = try getPublicKey(privateKey: privateKey)
+            } catch{
+                throw error
             }
             
-            
-            return true
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
-
-    }
-    
-    
-    func getPublicKeyString(tag: String) throws -> String? {
-        if #available(iOS 10.0, *) {
-            guard let key = key, let publicKey = SecKeyCopyPublicKey(key) else {
-                return nil
-            }
             var error: Unmanaged<CFError>?
             if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
                 return keyData.hexDescription
@@ -189,55 +174,54 @@ class Core{
             throw CustomError.runtimeError("OS < 10")
         }
     }
-    
-//    @available(iOS 11.0, *)
-//    private func getPrivateKey(tag: Data) throws -> SecKey? {
-//        guard prepareKey(tag: <#T##String#>) else {
-//            return nil
-//        }
-//
-//        guard let publicKey = SecKeyCopyPublicKey(key!) else {
-//            return nil
-//        }
-//
-//        let algorithm: SecKeyAlgorithm = .eciesEncryptionCofactorVariableIVX963SHA256AESGCM
-//        guard SecKeyIsAlgorithmSupported(publicKey, .encrypt, algorithm) else {
-//            return nil
-//        }
-//        var error: Unmanaged<CFError>?
-//        cipherTextData = SecKeyCreateEncryptedData(publicKey, algorithm,
-//                                                   tag as CFData,
-//                                                   &error) as Data?
-//        guard cipherTextData != nil else {
-//            return key
-//        }
-//        return key
-//    }
+
+    private func getPublicKey(privateKey: SecKey) throws -> SecKey {
+        if #available(iOS 10.0, *) {
+            if let publicKey = SecKeyCopyPublicKey(privateKey) {
+                return publicKey
+            } else {
+                throw CustomError.runtimeError("Failed get public key from private key")
+            }
+        } else {
+            // Fallback on earlier versions
+            throw CustomError.runtimeError("OS < 10")
+        }
+    }
     
     
     func encrypt(tag: String , message: String, isRequiresBiometric: Bool) throws -> FlutterStandardTypedData? {
         if #available(iOS 11.0, *) {
-            guard prepareKey(keyName: tag, isRequiresBiometric: isRequiresBiometric) else {
-                return nil
+            let privateKey : SecKey
+            let publicKey : SecKey
+            
+            do{
+                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+                publicKey = try getPublicKey(privateKey: privateKey)
+            } catch{
+                throw error
             }
             
-            guard let publicKey = SecKeyCopyPublicKey(key!) else {
-                throw CustomError.runtimeError("Failed to get public key")
-            }
             let algorithm: SecKeyAlgorithm = .eciesEncryptionCofactorVariableIVX963SHA256AESGCM
             guard SecKeyIsAlgorithmSupported(publicKey, .encrypt, algorithm) else {
                 throw CustomError.runtimeError("Algorithm not suppoort")
             }
             var error: Unmanaged<CFError>?
             let clearTextData = message.data(using: .utf8)!
-            cipherTextData = SecKeyCreateEncryptedData(publicKey, algorithm,
+            let cipherTextData = SecKeyCreateEncryptedData(publicKey, algorithm,
                                                        clearTextData as CFData,
                                                        &error) as Data?
-            guard cipherTextData != nil else {
-                return nil
+            
+            if let error = error {
+                throw error.takeRetainedValue() as Error
             }
-//            let cipherTextHex = cipherTextData?.hexDescription
-            return FlutterStandardTypedData(bytes: cipherTextData!)
+            
+            if let cipherTextData = cipherTextData {
+                print(cipherTextData.bytes)
+                return FlutterStandardTypedData(bytes: cipherTextData)
+            } else {
+                throw CustomError.runtimeError("Harusnya bisa encrypt")
+            }
+            
         } else {
             // Fallback on earlier versions
             throw CustomError.runtimeError("OS < 10")
@@ -247,35 +231,36 @@ class Core{
     
     func decrypt(tag: String, message: Data, isRequiresBiometric: Bool) throws -> String? {
         if #available(iOS 11.0, *) {
-            guard prepareKey(keyName: tag, isRequiresBiometric: isRequiresBiometric) else {
-                return nil
-            }
+            let privateKey : SecKey
             
-            guard cipherTextData != nil else {
-                throw CustomError.runtimeError("No Decrypt Data")
+            do{
+                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+            } catch{
+                throw error
             }
             
             let algorithm: SecKeyAlgorithm = .eciesEncryptionCofactorVariableIVX963SHA256AESGCM
-            var clearText: String?
+            let cipherTextData = message as CFData
             
-            guard SecKeyIsAlgorithmSupported(self.key!, .decrypt, algorithm) else {
+            guard SecKeyIsAlgorithmSupported(privateKey, .decrypt, algorithm) else {
                 throw CustomError.runtimeError("Algorithm not supported")
             }
             
-//            DispatchQueue.global().async {
-                var error: Unmanaged<CFError>?
-                let clearTextData = SecKeyCreateDecryptedData(self.key!,
+            var error: Unmanaged<CFError>?
+            let clearTextData = SecKeyCreateDecryptedData(privateKey,
                                                               algorithm,
-                                                              self.cipherTextData! as CFData,
+                                                              cipherTextData,
                                                               &error) as Data?
-//                DispatchQueue.main.async {
-                    guard clearTextData != nil else {
-                        throw CustomError.runtimeError("Can't decrypt data")
-                    }
-                    clearText = String(decoding: clearTextData!, as: UTF8.self)
-//                }
-//            }
-            return clearText
+
+            if let clearTextData = clearTextData {
+                let clearText = String(decoding: clearTextData, as: UTF8.self)
+
+                return clearText
+            } else {
+                throw CustomError.runtimeError("Can't decrypt data")
+            }
+            
+            
         } else {
             // Fallback on earlier versions
             throw CustomError.runtimeError("OS < 10")
