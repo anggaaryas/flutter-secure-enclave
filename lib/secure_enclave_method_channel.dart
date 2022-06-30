@@ -18,19 +18,21 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<String?> decrypt(String tag, Uint8List message) async {
+  Future<String?> decrypt(String tag, Uint8List message, bool isRequiresBiometric) async {
     final decrypted = await methodChannel.invokeMethod<String>('decrypt', {
       "tag": tag,
-      "message": message
+      "message": message,
+       "isRequiresBiometric": isRequiresBiometric
     });
     return decrypted;
   }
 
   @override
-  Future<Uint8List?> encrypt(String tag, String message) async {
+  Future<Uint8List?> encrypt(String tag, String message, bool isRequiresBiometric) async {
     final encrypted = await methodChannel.invokeMethod<Uint8List?>('encrypt', {
       "tag": tag,
-      "message": message
+      "message": message,
+      "isRequiresBiometric": isRequiresBiometric
     });
     return encrypted;
   }

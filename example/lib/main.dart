@@ -20,7 +20,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _secureEnclavePlugin = SecureEnclave();
-  final tag = "TEST_APP_TAG";
+  final String tag = "keychain-coinbit.privateKey";
+  final String tagBiometric = "keychain-coinbit.privateKeyBio";
+  bool _isRequiresBiometric = false;
 
   TextEditingController input = TextEditingController();
 
@@ -33,13 +35,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   void encrypt(String message){
-    _secureEnclavePlugin.encrypt(tag, message).then((value) => setState((){
+    _secureEnclavePlugin.encrypt(_isRequiresBiometric ? tagBiometric : tag, message, _isRequiresBiometric).then((value) => setState((){
       encrypted = value ?? Uint8List(0);
     }));
   }
 
-  void decrypt(Uint8List message){
-    _secureEnclavePlugin.decrypt(tag, message).then((value) => setState((){
+  void decrypt(Uint8List message, bool isRequiresBiometric){
+    _secureEnclavePlugin.decrypt(_isRequiresBiometric ? tagBiometric : tag, message, isRequiresBiometric).then((value) => setState((){
       decrypted = value ?? "";
     }));
   }
@@ -60,6 +62,19 @@ class _MyAppState extends State<MyApp> {
             TextField(
               controller: input,
             ),
+            Row(
+              children: [
+                const Text("Biometric"),
+                const SizedBox(width: 10,),
+                Switch(value: _isRequiresBiometric, onChanged: (value){
+                  setState(() {
+                    _isRequiresBiometric = value;
+                    encrypted = Uint8List(0);
+                    decrypted = "";
+                  });
+                }),
+              ],
+            ),
              TextButton(onPressed: (){
                encrypt(input.text);
                // input.clear();
@@ -68,7 +83,7 @@ class _MyAppState extends State<MyApp> {
                  encrypted.toString()
             ),
             TextButton(onPressed: (){
-              decrypt(encrypted);
+              decrypt(encrypted, _isRequiresBiometric);
             }, child: Text("decrypt!")),
             Text(
                 decrypted
