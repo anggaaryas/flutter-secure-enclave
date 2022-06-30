@@ -31,10 +31,10 @@ class Core{
         let flags: SecAccessControlCreateFlags
         if #available(iOS 11.3, *) {
             flags = requiresBiometry ?
-                [.privateKeyUsage, .biometryCurrentSet] : .privateKeyUsage
+            [.privateKeyUsage, .userPresence] : .privateKeyUsage
         } else {
             flags = requiresBiometry ?
-                [.privateKeyUsage, .touchIDCurrentSet] : .privateKeyUsage
+                [.privateKeyUsage, .userPresence] : .privateKeyUsage
         }
         
         var accessError: Unmanaged<CFError>?

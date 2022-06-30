@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _secureEnclavePlugin = SecureEnclave();
   final String tag = "keychain-coinbit.privateKey";
-  final String tagBiometric = "keychain-coinbit.privateKeyBio";
+  final String tagBiometric = "keychain-coinbit.privateKeyPresence";
   bool _isRequiresBiometric = false;
 
   TextEditingController input = TextEditingController();
