@@ -11,22 +11,35 @@ import CommonCrypto
 
 class Core{
     
-    enum CustomError: Error {
-        case runtimeError(String)
-    }
-    
-    func removeKey(name: String) {
+    func removeKey(name: String) throws -> Bool{
         let tag = name.data(using: .utf8)!
         let query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
             kSecAttrApplicationTag as String    : tag
         ]
 
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+    
+        guard status == errSecSuccess else {
+            if status == errSecNotAvailable || status == errSecItemNotFound {
+                return false
+            } else {
+                if #available(iOS 11.3, *) {
+                    throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+                } else {
+                    throw CustomError.runtimeError("Failed Load key")
+                }
+            }
+        }
+        
+        return true
     }
     
     private func makeAndStorePrivateKey(name: String,
                                 requiresBiometry: Bool) throws -> SecKey {
+        
+        print("requst biometry:")
+        print(requiresBiometry)
 
         let flags: SecAccessControlCreateFlags
         if #available(iOS 11.3, *) {
@@ -133,25 +146,6 @@ class Core{
         }
     }
     
-    private func getBioSecAccessControl() -> SecAccessControl {
-        var access: SecAccessControl?
-        var error: Unmanaged<CFError>?
-        
-        if #available(iOS 11.3, *) {
-            access = SecAccessControlCreateWithFlags(nil,
-                kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-                .biometryCurrentSet,
-                &error)
-        } else {
-            access = SecAccessControlCreateWithFlags(nil,
-                kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-                .touchIDCurrentSet,
-                &error)
-        }
-        precondition(access != nil, "SecAccessControlCreateWithFlags failed")
-        return access!
-    }
-    
     func getPublicKeyString(tag: String, isRequiresBiometric: Bool) throws -> String? {
         if #available(iOS 10.0, *) {
             let privateKey : SecKey
@@ -216,7 +210,6 @@ class Core{
             }
             
             if let cipherTextData = cipherTextData {
-                print(cipherTextData.bytes)
                 return FlutterStandardTypedData(bytes: cipherTextData)
             } else {
                 throw CustomError.runtimeError("Harusnya bisa encrypt")

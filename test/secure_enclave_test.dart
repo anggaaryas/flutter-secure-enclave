@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:secure_enclave/secure_enclave.dart';
-import 'package:secure_enclave/secure_enclave_platform_interface.dart';
-import 'package:secure_enclave/secure_enclave_method_channel.dart';
+import 'package:secure_enclave/src/secure_enclave_platform_interface.dart';
+import 'package:secure_enclave/src/secure_enclave_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockSecureEnclavePlatform 
