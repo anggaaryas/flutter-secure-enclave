@@ -44,11 +44,8 @@ class _MyAppState extends State<MyApp> {
             message: message,
             accessControl: AccessControl(
               options: _isRequiresBiometric
-                  ? [
-                      AccessControlOption.userPresence,
-                      AccessControlOption.privateKeyUsage
-                    ]
-                  : [AccessControlOption.privateKeyUsage],
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
               tag: _isRequiresBiometric ? tagBiometric : tag,
             ))
         .then((result) => setState(() {
@@ -69,11 +66,8 @@ class _MyAppState extends State<MyApp> {
             message: message,
             accessControl: AccessControl(
               options: _isRequiresBiometric
-                  ? [
-                      AccessControlOption.userPresence,
-                      AccessControlOption.privateKeyUsage
-                    ]
-                  : [AccessControlOption.privateKeyUsage],
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
               tag: _isRequiresBiometric ? tagBiometric : tag,
             ),
             publicKeyString: publicKey)
@@ -95,11 +89,8 @@ class _MyAppState extends State<MyApp> {
             message: message,
             accessControl: AccessControl(
               options: _isRequiresBiometric
-                  ? [
-                      AccessControlOption.userPresence,
-                      AccessControlOption.privateKeyUsage
-                    ]
-                  : [AccessControlOption.privateKeyUsage],
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
               tag: _isRequiresBiometric ? tagBiometric : tag,
             ))
         .then((result) => setState(() {
@@ -119,11 +110,8 @@ class _MyAppState extends State<MyApp> {
         .getPublicKey(
             accessControl: AccessControl(
       options: _isRequiresBiometric
-          ? [
-              AccessControlOption.userPresence,
-              AccessControlOption.privateKeyUsage
-            ]
-          : [AccessControlOption.privateKeyUsage],
+          ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+          : SecureEnclave.defaulAccessControlOption,
       tag: _isRequiresBiometric ? tagBiometric : tag,
     ))
         .then((result) {

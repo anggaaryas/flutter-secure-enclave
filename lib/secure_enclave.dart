@@ -10,6 +10,11 @@ import 'package:secure_enclave/src/model/method_result.dart';
 import 'src/secure_enclave_platform_interface.dart';
 
 class SecureEnclave implements SecureEnclaveBehaviour{
+
+  static const defaultRequiredAuthForAccessControlOption = [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage];
+
+  static const defaulAccessControlOption = [AccessControlOption.privateKeyUsage];
+
   @override
   Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl}) {
     return SecureEnclavePlatform.instance.decrypt(
