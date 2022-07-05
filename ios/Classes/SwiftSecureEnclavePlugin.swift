@@ -11,7 +11,6 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-      print(call.method)
       switch call.method{
       case "encrypt" :
           let param = call.arguments as? Dictionary<String, Any>
@@ -21,10 +20,30 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
                 
           do{
               let encrypted = try core.encrypt(tag: tag, message: message, isRequiresBiometric: isRequiresBiometric)
-              result(encrypted)
+              result(resultSuccess(data:encrypted))
           } catch {
               print("Error info: \(error)")
+              result(resultError(error:error))
           }
+          
+      case "encryptWithCustomPublicKey" :
+          let param = call.arguments as? Dictionary<String, Any>
+          let tag = param!["tag"] as! String
+          let message = param!["message"] as! String
+          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
+          let publicKeyString = param!["publicKeyString"] as! String
+                
+          do{
+              let encrypted = try core.encrypt(tag: tag, message: message,
+                                               publicKeyString: publicKeyString,
+                                               isRequiresBiometric: isRequiresBiometric)
+              result(resultSuccess(data:encrypted))
+          } catch {
+              print("Error info: \(error)")
+              result(resultError(error:error))
+          }
+          
+          
       case "decrypt" :
           let param = call.arguments as? Dictionary<String, Any>
           let tag = param!["tag"] as! String
@@ -33,9 +52,10 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
         
           do{
               let decrypted = try core.decrypt(tag: tag, message: message.data, isRequiresBiometric: isRequiresBiometric)
-              result(decrypted)
+              result(resultSuccess(data:decrypted))
           } catch {
               print("Error info: \(error)")
+              result(resultError(error:error))
           }
           
       case "getPublicKeyString":
@@ -45,10 +65,29 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
           do{
               let key = try core.getPublicKeyString(tag: tag, isRequiresBiometric: isRequiresBiometric)
-              result(key)
+              result(resultSuccess(data:key))
           } catch {
               print("Error info: \(error)")
+              result(resultError(error:error))
           }
+          
+      case "removeKey":
+          let param = call.arguments as? Dictionary<String, Any>
+          let tag = param!["tag"] as! String
+          
+          print(tag)
+          
+          do{
+              let isSuccess = try core.removeKey(name: tag)
+              print(isSuccess)
+              result(resultSuccess(data:isSuccess))
+          } catch {
+              print("Error info: \(error)")
+              result(resultError(error:error))
+          }
+          
+      case "cobaError":
+          result(MethodResult(error: ErrorHandling(code: 100, desc: "Ini hanya percobaan error"), data: nil).build())
           
       default:
           return

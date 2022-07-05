@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:secure_enclave/src/model/method_result.dart';
 
 import 'secure_enclave_method_channel.dart';
 
@@ -24,15 +25,14 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
-
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
 }
 
 
 abstract class SecureEnclaveBehaviour {
-  Future<Uint8List?> encrypt(String tag, String message, bool isRequiresBiometric);
-  Future<String?> decrypt(String tag, Uint8List message, bool isRequiresBiometric);
-  Future<String?> getPublicKey(String tag, bool isRequiresBiometric);
+  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric, {String? publicKeyString});
+  Future<MethodResult<String?>> decrypt(String tag, Uint8List message, bool isRequiresBiometric);
+  Future<MethodResult<String?>> getPublicKey(String tag, bool isRequiresBiometric);
+  Future<MethodResult<bool>> removeKey(String tag);
+
+  Future<MethodResult<dynamic>> cobaError();
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:secure_enclave/secure_enclave_method_channel.dart';
+import 'package:secure_enclave/src/secure_enclave_method_channel.dart';
 
 void main() {
   MethodChannelSecureEnclave platform = MethodChannelSecureEnclave();
