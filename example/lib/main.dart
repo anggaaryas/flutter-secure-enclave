@@ -39,61 +39,94 @@ class _MyAppState extends State<MyApp> {
   }
 
   void encrypt(String message) {
-    _secureEnclavePlugin.encrypt(message: message, accessControl: AccessControl(
-      options: _isRequiresBiometric? [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage] : [AccessControlOption.privateKeyUsage],
-      tag: _isRequiresBiometric ? tagBiometric : tag,)).then((result) =>
-        setState(() {
-          if (result.error == null) {
-            encrypted = result.value ?? Uint8List(0);
-          } else {
-            final error = result.error!;
-            _messangerKey.currentState?.showSnackBar(SnackBar(content: Text(
-                'code = ${error.code}  |  desc = ${error.desc}')));
-          }
-        }));
+    _secureEnclavePlugin
+        .encrypt(
+            message: message,
+            accessControl: AccessControl(
+              options: _isRequiresBiometric
+                  ? [
+                      AccessControlOption.userPresence,
+                      AccessControlOption.privateKeyUsage
+                    ]
+                  : [AccessControlOption.privateKeyUsage],
+              tag: _isRequiresBiometric ? tagBiometric : tag,
+            ))
+        .then((result) => setState(() {
+              if (result.error == null) {
+                encrypted = result.value ?? Uint8List(0);
+              } else {
+                final error = result.error!;
+                _messangerKey.currentState?.showSnackBar(SnackBar(
+                    content:
+                        Text('code = ${error.code}  |  desc = ${error.desc}')));
+              }
+            }));
   }
 
   void encryptWithPublicKey(String message) {
-    _secureEnclavePlugin.encrypt(
-        message: message,
-        accessControl: AccessControl(
-          options: _isRequiresBiometric? [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage] : [AccessControlOption.privateKeyUsage],
-          tag: _isRequiresBiometric ? tagBiometric : tag,),
-        publicKeyString: publicKey).then((result) =>
-        setState(() {
-          if (result.error == null) {
-            encryptedWithPublicKey = result.value ?? Uint8List(0);
-          } else {
-            final error = result.error!;
-            _messangerKey.currentState?.showSnackBar(SnackBar(content: Text(
-                'code = ${error.code}  |  desc = ${error.desc}')));
-          }
-        }));
+    _secureEnclavePlugin
+        .encrypt(
+            message: message,
+            accessControl: AccessControl(
+              options: _isRequiresBiometric
+                  ? [
+                      AccessControlOption.userPresence,
+                      AccessControlOption.privateKeyUsage
+                    ]
+                  : [AccessControlOption.privateKeyUsage],
+              tag: _isRequiresBiometric ? tagBiometric : tag,
+            ),
+            publicKeyString: publicKey)
+        .then((result) => setState(() {
+              if (result.error == null) {
+                encryptedWithPublicKey = result.value ?? Uint8List(0);
+              } else {
+                final error = result.error!;
+                _messangerKey.currentState?.showSnackBar(SnackBar(
+                    content:
+                        Text('code = ${error.code}  |  desc = ${error.desc}')));
+              }
+            }));
   }
 
   void decrypt(Uint8List message) {
-    _secureEnclavePlugin.decrypt(
-       message: message, accessControl: AccessControl(
-      options: _isRequiresBiometric? [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage] : [AccessControlOption.privateKeyUsage],
-      tag: _isRequiresBiometric ? tagBiometric : tag,))
-        .then((result) =>
-        setState(() {
-          if (result.error == null) {
-            decrypted = result.value ?? "";
-          } else {
-            final error = result.error!;
-            _messangerKey.currentState?.showSnackBar(SnackBar(content: Text(
-                'code = ${error.code}  |  desc = ${error.desc}')));
-          }
-        }));
+    _secureEnclavePlugin
+        .decrypt(
+            message: message,
+            accessControl: AccessControl(
+              options: _isRequiresBiometric
+                  ? [
+                      AccessControlOption.userPresence,
+                      AccessControlOption.privateKeyUsage
+                    ]
+                  : [AccessControlOption.privateKeyUsage],
+              tag: _isRequiresBiometric ? tagBiometric : tag,
+            ))
+        .then((result) => setState(() {
+              if (result.error == null) {
+                decrypted = result.value ?? "";
+              } else {
+                final error = result.error!;
+                _messangerKey.currentState?.showSnackBar(SnackBar(
+                    content:
+                        Text('code = ${error.code}  |  desc = ${error.desc}')));
+              }
+            }));
   }
 
   void getPublicKey() {
-    _secureEnclavePlugin.getPublicKey(
-        accessControl: AccessControl(
-        options: _isRequiresBiometric? [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage] : [AccessControlOption.privateKeyUsage],
-        tag: _isRequiresBiometric ? tagBiometric : tag,)).then((
-        result) {
+    _secureEnclavePlugin
+        .getPublicKey(
+            accessControl: AccessControl(
+      options: _isRequiresBiometric
+          ? [
+              AccessControlOption.userPresence,
+              AccessControlOption.privateKeyUsage
+            ]
+          : [AccessControlOption.privateKeyUsage],
+      tag: _isRequiresBiometric ? tagBiometric : tag,
+    ))
+        .then((result) {
       if (result.error == null) {
         publicKey = result.value ?? "";
         setState(() {});
@@ -142,50 +175,64 @@ class _MyAppState extends State<MyApp> {
             Row(
               children: [
                 const Text("Biometric"),
-                const SizedBox(width: 10,),
-                Switch(value: _isRequiresBiometric, onChanged: (value) {
-                  setState(() {
-                    _isRequiresBiometric = value;
-                    encrypted = Uint8List(0);
-                    decrypted = "";
-                  });
-                }),
+                const SizedBox(
+                  width: 10,
+                ),
+                Switch(
+                    value: _isRequiresBiometric,
+                    onChanged: (value) {
+                      setState(() {
+                        _isRequiresBiometric = value;
+                        encrypted = Uint8List(0);
+                        decrypted = "";
+                      });
+                    }),
               ],
             ),
-            TextButton(onPressed: () {
-              encrypt(input.text);
-              // input.clear();
-            }, child: Text("encrypt!")),
-            Text(
-                encrypted.toString()
-            ),
-            TextButton(onPressed: () {
-              decrypt(encrypted);
-            }, child: Text("decrypt!")),
-            Text(
-                decrypted
-            ),
+            TextButton(
+                onPressed: () {
+                  encrypt(input.text);
+                  // input.clear();
+                },
+                child: Text("encrypt!")),
+            Text(encrypted.toString()),
+            TextButton(
+                onPressed: () {
+                  decrypt(encrypted);
+                },
+                child: Text("decrypt!")),
+            Text(decrypted),
             Divider(),
-            TextButton(onPressed: () {
-              removeKey();
-            }, child: Text("reset key")),
+            TextButton(
+                onPressed: () {
+                  removeKey();
+                },
+                child: Text("reset key")),
             Divider(),
-            TextButton(onPressed: () {
-              cobaError();
-            }, child: Text("coba Error")),
+            TextButton(
+                onPressed: () {
+                  cobaError();
+                },
+                child: Text("coba Error")),
             Divider(),
             Text(publicKey),
-            TextButton(onPressed: () {
-              getPublicKey();
-            }, child: Text("get public key")),
-            TextButton(onPressed: () {
-              encryptWithPublicKey(input.text);
-            }, child: Text("encrypt with public key")),
+            TextButton(
+                onPressed: () {
+                  getPublicKey();
+                },
+                child: Text("get public key")),
+            TextButton(
+                onPressed: () {
+                  encryptWithPublicKey(input.text);
+                },
+                child: Text("encrypt with public key")),
             Text(encryptedWithPublicKey.toString()),
-            TextButton(onPressed: () {
-              decrypted = "";
-              decrypt(encryptedWithPublicKey);
-            }, child: Text("decrypt from encryptedWithPublicKey")),
+            TextButton(
+                onPressed: () {
+                  decrypted = "";
+                  decrypt(encryptedWithPublicKey);
+                },
+                child: Text("decrypt from encryptedWithPublicKey")),
           ],
         ),
       ),
