@@ -11,3 +11,10 @@
 - refactor input parameter
 - macOS partial support
 - customisable SecAccessControlCreateFlags
+
+## 0.0.2+rev1
+
+*05-07-2022*
+- separate encryptWithPublicKey and encrypt function
+
+
