@@ -25,10 +25,12 @@ class _MyAppState extends State<MyApp> {
   final String tag = "keychain-coinbit.privateKey";
   final String tagBiometric = "keychain-coinbit.privateKeyPresence";
   bool _isRequiresBiometric = false;
+  String publicKey = "";
 
   TextEditingController input = TextEditingController();
 
   Uint8List encrypted = Uint8List(0);
+  Uint8List encryptedWithPublicKey = Uint8List(0);
   String decrypted = "";
 
   @override
@@ -40,6 +42,17 @@ class _MyAppState extends State<MyApp> {
     _secureEnclavePlugin.encrypt(_isRequiresBiometric ? tagBiometric : tag, message, _isRequiresBiometric).then((result) => setState((){
       if(result.error == null){
         encrypted = result.value ?? Uint8List(0);
+      } else {
+        final error = result.error!;
+        _messangerKey.currentState?.showSnackBar(SnackBar(content: Text('code = ${error.code}  |  desc = ${error.desc}')));
+      }
+    }));
+  }
+
+  void encryptWithPublicKey(String message){
+    _secureEnclavePlugin.encrypt(_isRequiresBiometric ? tagBiometric : tag, message, _isRequiresBiometric, publicKeyString: publicKey).then((result) => setState((){
+      if(result.error == null){
+        encryptedWithPublicKey = result.value ?? Uint8List(0);
       } else {
         final error = result.error!;
         _messangerKey.currentState?.showSnackBar(SnackBar(content: Text('code = ${error.code}  |  desc = ${error.desc}')));
@@ -59,9 +72,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   void getPublicKey(bool isRequiresBiometric){
-    _secureEnclavePlugin.getPublicKey(tag, isRequiresBiometric).then((result){
+    _secureEnclavePlugin.getPublicKey(_isRequiresBiometric ? tagBiometric : tag, isRequiresBiometric).then((result){
       if(result.error == null){
-        decrypted = result.value ?? "";
+        publicKey = result.value ?? "";
+        setState((){});
       } else {
         final error = result.error!;
         _messangerKey.currentState?.showSnackBar(SnackBar(content: Text('code = ${error.code}  |  desc = ${error.desc}')));
@@ -97,7 +111,7 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Column(
+        body: ListView(
           children: [
             TextField(
               controller: input,
@@ -128,12 +142,27 @@ class _MyAppState extends State<MyApp> {
             Text(
                 decrypted
             ),
+            Divider(),
             TextButton(onPressed: (){
               removeKey();
             }, child: Text("reset key")),
+            Divider(),
             TextButton(onPressed: (){
               cobaError();
             }, child: Text("coba Error")),
+            Divider(),
+            Text(publicKey),
+            TextButton(onPressed: (){
+              getPublicKey(_isRequiresBiometric);
+            }, child: Text("get public key")),
+            TextButton(onPressed: (){
+              encryptWithPublicKey(input.text);
+            }, child: Text("encrypt with public key")),
+            Text(encryptedWithPublicKey.toString()),
+            TextButton(onPressed: (){
+              decrypted = "";
+              decrypt(encryptedWithPublicKey, _isRequiresBiometric);
+            }, child: Text("decrypt from encryptedWithPublicKey")),
           ],
         ),
       ),

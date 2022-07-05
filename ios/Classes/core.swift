@@ -160,7 +160,7 @@ class Core{
             
             var error: Unmanaged<CFError>?
             if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
-                return keyData.hexDescription
+                return keyData.base64EncodedString()
             } else {
                 return nil
             }
@@ -182,6 +182,71 @@ class Core{
         }
     }
     
+    private func retrievePublicKeyFromString(publicKeyString: String) throws -> SecKey{
+        if #available(iOS 10.0, *) {
+            let publicKeyData = Data(base64Encoded: publicKeyString)!
+            
+            let attributes: [String:Any] =
+                [
+                    kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
+                    kSecAttrKeyType as String: kSecAttrKeyTypeEC,
+                    kSecAttrKeySizeInBits as String: 256,
+                ]
+            var error: Unmanaged<CFError>?
+            let secKey = SecKeyCreateWithData(publicKeyData as CFData, attributes as CFDictionary, &error)
+            
+            if let error = error {
+                throw error.takeRetainedValue() as Error
+            }
+            
+            if let publicKey = secKey{
+                return publicKey
+            } else {
+                throw CustomError.runtimeError("Public key null!")
+                
+            }
+        } else {
+            // Fallback on earlier versions
+            throw CustomError.runtimeError("OS < 10")
+        }
+    }
+    
+    
+    func encrypt(tag: String , message: String, publicKeyString: String, isRequiresBiometric: Bool) throws -> FlutterStandardTypedData? {
+        if #available(iOS 11.0, *) {
+            let publicKey : SecKey
+            
+            do{
+                publicKey = try retrievePublicKeyFromString(publicKeyString: publicKeyString)
+            } catch {
+                throw error
+            }
+            
+            let algorithm: SecKeyAlgorithm = .eciesEncryptionCofactorVariableIVX963SHA256AESGCM
+            guard SecKeyIsAlgorithmSupported(publicKey, .encrypt, algorithm) else {
+                throw CustomError.runtimeError("Algorithm not suppoort")
+            }
+            var error: Unmanaged<CFError>?
+            let clearTextData = message.data(using: .utf8)!
+            let cipherTextData = SecKeyCreateEncryptedData(publicKey, algorithm,
+                                                       clearTextData as CFData,
+                                                       &error) as Data?
+            
+            if let error = error {
+                throw error.takeRetainedValue() as Error
+            }
+            
+            if let cipherTextData = cipherTextData {
+                return FlutterStandardTypedData(bytes: cipherTextData)
+            } else {
+                throw CustomError.runtimeError("Harusnya bisa encrypt")
+            }
+            
+        } else {
+            // Fallback on earlier versions
+            throw CustomError.runtimeError("OS < 10")
+        }
+    }
     
     func encrypt(tag: String , message: String, isRequiresBiometric: Bool) throws -> FlutterStandardTypedData? {
         if #available(iOS 11.0, *) {
@@ -244,6 +309,10 @@ class Core{
                                                               algorithm,
                                                               cipherTextData,
                                                               &error) as Data?
+            
+            if let error = error {
+                throw error.takeUnretainedValue() as Error
+            }
 
             if let clearTextData = clearTextData {
                 let clearText = String(decoding: clearTextData, as: UTF8.self)

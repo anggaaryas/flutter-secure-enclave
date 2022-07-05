@@ -12,8 +12,8 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric) {
-    return SecureEnclavePlatform.instance.encrypt(tag, message, isRequiresBiometric);
+  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric, {String? publicKeyString}) {
+    return SecureEnclavePlatform.instance.encrypt(tag, message, isRequiresBiometric, publicKeyString: publicKeyString);
   }
 
   @override

@@ -28,11 +28,13 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric) async {
-    final result = await methodChannel.invokeMethod<dynamic>('encrypt', {
+  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric, {String? publicKeyString}) async {
+    final methodName = publicKeyString != null? "encryptWithCustomPublicKey" : 'encrypt';
+    final result = await methodChannel.invokeMethod<dynamic>(methodName, {
       "tag": tag,
       "message": message,
-      "isRequiresBiometric": isRequiresBiometric
+      "isRequiresBiometric": isRequiresBiometric,
+      "publicKeyString": publicKeyString
     });
     return MethodResult.fromMap(
         map: Map<String, dynamic>.from(result),

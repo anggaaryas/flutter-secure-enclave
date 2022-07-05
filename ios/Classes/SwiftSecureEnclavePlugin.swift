@@ -26,6 +26,23 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
               result(resultError(error:error))
           }
           
+      case "encryptWithCustomPublicKey" :
+          let param = call.arguments as? Dictionary<String, Any>
+          let tag = param!["tag"] as! String
+          let message = param!["message"] as! String
+          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
+          let publicKeyString = param!["publicKeyString"] as! String
+                
+          do{
+              let encrypted = try core.encrypt(tag: tag, message: message,
+                                               publicKeyString: publicKeyString,
+                                               isRequiresBiometric: isRequiresBiometric)
+              result(resultSuccess(data:encrypted))
+          } catch {
+              print("Error info: \(error)")
+              result(resultError(error:error))
+          }
+          
           
       case "decrypt" :
           let param = call.arguments as? Dictionary<String, Any>
