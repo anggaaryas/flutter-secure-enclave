@@ -9,6 +9,7 @@ import Foundation
 import LocalAuthentication
 import CommonCrypto
 
+@available(iOS 11.3, *)
 class Core{
     
     func removeKey(name: String) throws -> Bool{
@@ -24,31 +25,18 @@ class Core{
             if status == errSecNotAvailable || status == errSecItemNotFound {
                 return false
             } else {
-                if #available(iOS 11.3, *) {
-                    throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
-                } else {
-                    throw CustomError.runtimeError("Failed Load key")
-                }
+                throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
             }
         }
         
         return true
     }
     
-    private func makeAndStorePrivateKey(name: String,
-                                requiresBiometry: Bool) throws -> SecKey {
-        
-        print("requst biometry:")
-        print(requiresBiometry)
+    private func makeAndStorePrivateKey(name: String, option: SecAccessControlCreateFlags) throws -> SecKey {
+      
 
-        let flags: SecAccessControlCreateFlags
-        if #available(iOS 11.3, *) {
-            flags = requiresBiometry ?
-            [.privateKeyUsage, .userPresence] : .privateKeyUsage
-        } else {
-            flags = requiresBiometry ?
-                [.privateKeyUsage, .userPresence] : .privateKeyUsage
-        }
+        let flags: SecAccessControlCreateFlags = option
+     
         
         var accessError: Unmanaged<CFError>?
         
@@ -92,14 +80,12 @@ class Core{
             }
             
             var error: Unmanaged<CFError>?
-            if #available(iOS 10.0, *) {
-                guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
-                    throw error!.takeRetainedValue() as Error
-                }
-                return privateKey
-            } else {
-                throw CustomError.runtimeError("OS < 10")
+            
+            guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
+                throw error!.takeRetainedValue() as Error
             }
+            return privateKey
+            
         } else {
             // tag error
             throw CustomError.runtimeError("Invalid TAG") as Error
@@ -121,11 +107,8 @@ class Core{
             if status == errSecNotAvailable || status == errSecItemNotFound {
                 return nil
             } else {
-                if #available(iOS 11.3, *) {
-                    throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
-                } else {
-                    throw CustomError.runtimeError("Failed Load key")
-                }
+                throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+               
             }
         }
         
@@ -134,11 +117,11 @@ class Core{
       
     }
     
-    private func preparePrivateKey(keyName: String, isRequiresBiometric: Bool) throws -> SecKey {
+    private func preparePrivateKey(accessControlParam: AccessControlParam) throws -> SecKey {
         do {
-            var key = try loadKey(name: keyName)
+            var key = try loadKey(name: accessControlParam.tag)
             if key == nil {
-                key = try makeAndStorePrivateKey(name: keyName, requiresBiometry: isRequiresBiometric)
+                key = try makeAndStorePrivateKey(name: accessControlParam.tag, option: accessControlParam.option)
             }
             return key!
         } catch {
@@ -146,13 +129,13 @@ class Core{
         }
     }
     
-    func getPublicKeyString(tag: String, isRequiresBiometric: Bool) throws -> String? {
-        if #available(iOS 10.0, *) {
+    func getPublicKeyString(accessControlParam: AccessControlParam) throws -> String? {
+       
             let privateKey : SecKey
             let publicKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
                 publicKey = try getPublicKey(privateKey: privateKey)
             } catch{
                 throw error
@@ -164,26 +147,21 @@ class Core{
             } else {
                 return nil
             }
-        } else {
-            throw CustomError.runtimeError("OS < 10")
-        }
+       
     }
 
     private func getPublicKey(privateKey: SecKey) throws -> SecKey {
-        if #available(iOS 10.0, *) {
+     
             if let publicKey = SecKeyCopyPublicKey(privateKey) {
                 return publicKey
             } else {
                 throw CustomError.runtimeError("Failed get public key from private key")
             }
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
+      
     }
     
     private func retrievePublicKeyFromString(publicKeyString: String) throws -> SecKey{
-        if #available(iOS 10.0, *) {
+
             let publicKeyData = Data(base64Encoded: publicKeyString)!
             
             let attributes: [String:Any] =
@@ -205,15 +183,11 @@ class Core{
                 throw CustomError.runtimeError("Public key null!")
                 
             }
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
     }
     
     
-    func encrypt(tag: String , message: String, publicKeyString: String, isRequiresBiometric: Bool) throws -> FlutterStandardTypedData? {
-        if #available(iOS 11.0, *) {
+    func encrypt( message: String, publicKeyString: String) throws -> FlutterStandardTypedData? {
+
             let publicKey : SecKey
             
             do{
@@ -242,19 +216,16 @@ class Core{
                 throw CustomError.runtimeError("Harusnya bisa encrypt")
             }
             
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
+        
     }
     
-    func encrypt(tag: String , message: String, isRequiresBiometric: Bool) throws -> FlutterStandardTypedData? {
-        if #available(iOS 11.0, *) {
+    func encrypt( message: String, accessControlParam: AccessControlParam) throws -> FlutterStandardTypedData? {
+        
             let privateKey : SecKey
             let publicKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
                 publicKey = try getPublicKey(privateKey: privateKey)
             } catch{
                 throw error
@@ -280,19 +251,16 @@ class Core{
                 throw CustomError.runtimeError("Harusnya bisa encrypt")
             }
             
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
+       
     }
     
     
-    func decrypt(tag: String, message: Data, isRequiresBiometric: Bool) throws -> String? {
-        if #available(iOS 11.0, *) {
+    func decrypt(message: Data, accessControlParam: AccessControlParam) throws -> String? {
+
             let privateKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(keyName: tag, isRequiresBiometric: isRequiresBiometric)
+                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
             } catch{
                 throw error
             }
@@ -323,10 +291,7 @@ class Core{
             }
             
             
-        } else {
-            // Fallback on earlier versions
-            throw CustomError.runtimeError("OS < 10")
-        }
+
     }
 }
 

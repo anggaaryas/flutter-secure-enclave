@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:secure_enclave/src/model/method_result.dart';
 
+import 'model/access_control.dart';
 import 'secure_enclave_platform_interface.dart';
 
 /// An implementation of [SecureEnclavePlatform] that uses method channels.
@@ -13,11 +14,10 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   final methodChannel = const MethodChannel('secure_enclave');
 
   @override
-  Future<MethodResult<String?>> decrypt(String tag, Uint8List message, bool isRequiresBiometric) async {
+  Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl}) async {
     final result = await methodChannel.invokeMethod<dynamic>('decrypt', {
-      "tag": tag,
       "message": message,
-       "isRequiresBiometric": isRequiresBiometric
+      "accessControl": accessControl.toJson(),
     });
     return MethodResult.fromMap(
       map: Map<String, dynamic>.from(result),
@@ -28,12 +28,12 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric, {String? publicKeyString}) async {
+  Future<MethodResult<Uint8List?>> encrypt({required String message, required AccessControl accessControl, String? publicKeyString}) async {
+    print(accessControl.toJson());
     final methodName = publicKeyString != null? "encryptWithCustomPublicKey" : 'encrypt';
     final result = await methodChannel.invokeMethod<dynamic>(methodName, {
-      "tag": tag,
       "message": message,
-      "isRequiresBiometric": isRequiresBiometric,
+      "accessControl": accessControl.toJson(),
       "publicKeyString": publicKeyString
     });
     return MethodResult.fromMap(
@@ -45,10 +45,9 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<String?>> getPublicKey(String tag, bool isRequiresBiometric) async {
+  Future<MethodResult<String?>> getPublicKey({ required AccessControl accessControl}) async {
     final result = await methodChannel.invokeMethod<dynamic>('getPublicKeyString', {
-      "tag": tag,
-      "isRequiresBiometric": isRequiresBiometric
+      "accessControl": accessControl.toJson(),
     });
 
     return MethodResult.fromMap(
