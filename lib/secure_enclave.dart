@@ -24,12 +24,18 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt({ required  String message, required AccessControl accessControl, String? publicKeyString}) {
+  Future<MethodResult<Uint8List?>> encrypt({ required  String message, required AccessControl accessControl}) {
     return SecureEnclavePlatform.instance.encrypt(
       accessControl: accessControl,
       message: message,
-      publicKeyString: publicKeyString
     );
+  }
+
+  @override
+  Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, String? publicKeyString}){
+    return SecureEnclavePlatform.instance.encryptWithPublicKey(
+        message: message,
+        publicKeyString: publicKeyString);
   }
 
   @override

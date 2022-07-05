@@ -62,14 +62,8 @@ class _MyAppState extends State<MyApp> {
 
   void encryptWithPublicKey(String message) {
     _secureEnclavePlugin
-        .encrypt(
+        .encryptWithPublicKey(
             message: message,
-            accessControl: AccessControl(
-              options: _isRequiresBiometric
-                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
-                  : SecureEnclave.defaulAccessControlOption,
-              tag: _isRequiresBiometric ? tagBiometric : tag,
-            ),
             publicKeyString: publicKey)
         .then((result) => setState(() {
               if (result.error == null) {

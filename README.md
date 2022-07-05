@@ -92,14 +92,8 @@ be aware that the tag and the required public key is valid. Otherwise, it will t
 
   void encryptWithPublicKey(String message, String publicKey) {
     _secureEnclavePlugin
-        .encrypt(
+        .encryptWithPublicKey(
             message: message,
-            accessControl: AccessControl(
-              options: _isRequiresBiometric
-                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
-                  : SecureEnclave.defaulAccessControlOption,
-              tag: _isRequiresBiometric ? tagBiometric : tag,
-            ),
             publicKeyString: publicKey
     ).then((result) => setState(() {
               if (result.error == null) {

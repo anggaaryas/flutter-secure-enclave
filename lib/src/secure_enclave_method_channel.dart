@@ -28,12 +28,22 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt({required String message, required AccessControl accessControl, String? publicKeyString}) async {
-    print(accessControl.toJson());
-    final methodName = publicKeyString != null? "encryptWithCustomPublicKey" : 'encrypt';
-    final result = await methodChannel.invokeMethod<dynamic>(methodName, {
+  Future<MethodResult<Uint8List?>> encrypt({required String message, required AccessControl accessControl}) async {
+    final result = await methodChannel.invokeMethod<dynamic>('encrypt', {
       "message": message,
       "accessControl": accessControl.toJson(),
+    });
+    return MethodResult.fromMap(
+        map: Map<String, dynamic>.from(result),
+        decoder: (rawData){
+          return rawData as Uint8List?;
+        }
+    );
+  }
+
+  Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, required String? publicKeyString}) async {
+    final result = await methodChannel.invokeMethod<dynamic>("encryptWithCustomPublicKey", {
+      "message": message,
       "publicKeyString": publicKeyString
     });
     return MethodResult.fromMap(
