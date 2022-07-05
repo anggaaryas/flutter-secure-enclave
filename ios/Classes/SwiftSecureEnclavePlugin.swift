@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 
+@available(iOS 11.3, *)
 public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
     let core = Core()
     
@@ -14,12 +15,11 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
       switch call.method{
       case "encrypt" :
           let param = call.arguments as? Dictionary<String, Any>
-          let tag = param!["tag"] as! String
           let message = param!["message"] as! String
-          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
+          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
                 
           do{
-              let encrypted = try core.encrypt(tag: tag, message: message, isRequiresBiometric: isRequiresBiometric)
+              let encrypted = try core.encrypt(message: message, accessControlParam: accessControlParam)
               result(resultSuccess(data:encrypted))
           } catch {
               print("Error info: \(error)")
@@ -28,15 +28,12 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
       case "encryptWithCustomPublicKey" :
           let param = call.arguments as? Dictionary<String, Any>
-          let tag = param!["tag"] as! String
           let message = param!["message"] as! String
-          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
           let publicKeyString = param!["publicKeyString"] as! String
                 
           do{
-              let encrypted = try core.encrypt(tag: tag, message: message,
-                                               publicKeyString: publicKeyString,
-                                               isRequiresBiometric: isRequiresBiometric)
+              let encrypted = try core.encrypt(message: message,
+                                               publicKeyString: publicKeyString)
               result(resultSuccess(data:encrypted))
           } catch {
               print("Error info: \(error)")
@@ -46,12 +43,11 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
       case "decrypt" :
           let param = call.arguments as? Dictionary<String, Any>
-          let tag = param!["tag"] as! String
           let message = param!["message"] as! FlutterStandardTypedData
-          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
+          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
         
           do{
-              let decrypted = try core.decrypt(tag: tag, message: message.data, isRequiresBiometric: isRequiresBiometric)
+              let decrypted = try core.decrypt(message: message.data, accessControlParam: accessControlParam)
               result(resultSuccess(data:decrypted))
           } catch {
               print("Error info: \(error)")
@@ -60,11 +56,10 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
       case "getPublicKeyString":
           let param = call.arguments as? Dictionary<String, Any>
-          let tag = param!["tag"] as! String
-          let isRequiresBiometric = param!["isRequiresBiometric"] as! Bool
+          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
           
           do{
-              let key = try core.getPublicKeyString(tag: tag, isRequiresBiometric: isRequiresBiometric)
+              let key = try core.getPublicKeyString(accessControlParam: accessControlParam)
               result(resultSuccess(data:key))
           } catch {
               print("Error info: \(error)")

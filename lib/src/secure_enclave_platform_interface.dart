@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:secure_enclave/src/model/access_control.dart';
 import 'package:secure_enclave/src/model/method_result.dart';
 
 import 'secure_enclave_method_channel.dart';
@@ -29,9 +30,9 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
 
 
 abstract class SecureEnclaveBehaviour {
-  Future<MethodResult<Uint8List?>> encrypt(String tag, String message, bool isRequiresBiometric, {String? publicKeyString});
-  Future<MethodResult<String?>> decrypt(String tag, Uint8List message, bool isRequiresBiometric);
-  Future<MethodResult<String?>> getPublicKey(String tag, bool isRequiresBiometric);
+  Future<MethodResult<Uint8List?>> encrypt({required  String message, required AccessControl accessControl, String? publicKeyString});
+  Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl});
+  Future<MethodResult<String?>> getPublicKey({required AccessControl accessControl});
   Future<MethodResult<bool>> removeKey(String tag);
 
   Future<MethodResult<dynamic>> cobaError();
