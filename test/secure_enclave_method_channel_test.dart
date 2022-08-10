@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:secure_enclave/secure_enclave.dart';
 import 'package:secure_enclave/src/secure_enclave_method_channel.dart';
 
 void main() {
@@ -18,7 +19,14 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await platform.getPlatformVersion(), '42');
+  test('test AppPassword', () async {
+    AccessControl accessControl =  AppPasswordAccessControl(
+      password: "aaaa",
+      options: [],
+      tag: "coba"
+    );
+
+    print(accessControl.toJson());
+    expect(accessControl.tag, "coba");
   });
 }

@@ -19,6 +19,7 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
       "message": message,
       "accessControl": accessControl.toJson(),
     });
+
     return MethodResult.fromMap(
       map: Map<String, dynamic>.from(result),
       decoder: (rawData){
@@ -33,6 +34,8 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
       "message": message,
       "accessControl": accessControl.toJson(),
     });
+
+
     return MethodResult.fromMap(
         map: Map<String, dynamic>.from(result),
         decoder: (rawData){

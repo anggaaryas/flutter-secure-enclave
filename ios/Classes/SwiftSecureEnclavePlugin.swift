@@ -16,7 +16,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
       case "encrypt" :
           let param = call.arguments as? Dictionary<String, Any>
           let message = param!["message"] as! String
-          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
+          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
                 
           do{
               let encrypted = try core.encrypt(message: message, accessControlParam: accessControlParam)
@@ -44,7 +44,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
       case "decrypt" :
           let param = call.arguments as? Dictionary<String, Any>
           let message = param!["message"] as! FlutterStandardTypedData
-          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
+          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
         
           do{
               let decrypted = try core.decrypt(message: message.data, accessControlParam: accessControlParam)
@@ -56,7 +56,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
       case "getPublicKeyString":
           let param = call.arguments as? Dictionary<String, Any>
-          let accessControlParam = AccessControlParam(value: param!["accessControl"] as! Dictionary<String, Any>)
+          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
           
           do{
               let key = try core.getPublicKeyString(accessControlParam: accessControlParam)
@@ -82,6 +82,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           }
           
       case "cobaError":
+//          core.authenticateTapped()
           result(MethodResult(error: ErrorHandling(code: 100, desc: "Ini hanya percobaan error"), data: nil).build())
           
       default:

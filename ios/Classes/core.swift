@@ -12,6 +12,31 @@ import CommonCrypto
 @available(iOS 11.3, *)
 class Core{
     
+//    func authenticateTapped() {
+//        let context = LAContext()
+//        var error: NSError?
+//
+//        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+//            let reason = "Identify yourself!"
+//
+//            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) {
+//                [weak self] success, authenticationError in
+//
+//                DispatchQueue.main.async {
+//                    if success {
+//                        print("sukses biometry")
+//                    } else {
+//                        // error
+//                        print("error biometry")
+//                    }
+//                }
+//            }
+//        } else {
+//            // no biometry
+//            print("nggak ada biometry")
+//        }
+//    }
+    
     func removeKey(name: String) throws -> Bool{
         let tag = name.data(using: .utf8)!
         let query: [String: Any] = [
@@ -32,17 +57,17 @@ class Core{
         return true
     }
     
-    private func makeAndStorePrivateKey(name: String, option: SecAccessControlCreateFlags) throws -> SecKey {
+    private func makeAndStorePrivateKey(accessControl: AccessControlParam) throws -> SecKey {
       
 
-        let flags: SecAccessControlCreateFlags = option
+        let flags: SecAccessControlCreateFlags = accessControl.option
      
         
         var accessError: Unmanaged<CFError>?
         
         let access =
             SecAccessControlCreateWithFlags(kCFAllocatorDefault,
-                                            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+                                            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,  // dynamis dari flutter
                                             flags,
                                             &accessError)!
         
@@ -50,14 +75,17 @@ class Core{
             throw error.takeRetainedValue() as Error
         }
         
-        let tag = name.data(using: .utf8)
+        let tag = accessControl.tag.data(using: .utf8)
         if let tag = tag {
             
+            // TODO: create builder to make CFDictionary
+            
             let attributes : CFDictionary
+            var attrTemp: Dictionary<String, Any>
             
             if TARGET_OS_SIMULATOR != 0 {
                 // target is current running in the simulator
-                attributes = [
+                attrTemp = [
                         kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
                         kSecAttrKeySizeInBits as String     : 256,
                         kSecPrivateKeyAttrs as String : [
@@ -65,9 +93,9 @@ class Core{
                             kSecAttrApplicationTag as String    : tag,
                             kSecAttrAccessControl as String     : access
                         ]
-                ] as CFDictionary
+                ]
             } else {
-                attributes = [
+                attrTemp = [
                         kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
                         kSecAttrKeySizeInBits as String     : 256,
                         kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
@@ -76,8 +104,19 @@ class Core{
                             kSecAttrApplicationTag as String    : tag,
                             kSecAttrAccessControl as String     : access
                         ]
-                ] as CFDictionary
+                ]
             }
+            
+            // cek kalau pakai app password, tambahkan password nya
+            if accessControl is AppPasswordAccessControlParam {
+                let context = LAContext()
+                context.setCredential((accessControl as! AppPasswordAccessControlParam).password.data(using: .utf8), type: .applicationPassword)
+
+                attrTemp[kSecUseAuthenticationContext as String] = context
+            }
+            
+            // convert ke CFDictinery
+            attributes = attrTemp as CFDictionary
             
             var error: Unmanaged<CFError>?
             
@@ -92,14 +131,22 @@ class Core{
         }
     }
     
-    private func loadKey(name: String) throws -> SecKey? {
+    private func loadKey(name: String, password: String?) throws -> SecKey? {
         let tag = name.data(using: .utf8)!
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
             kSecAttrApplicationTag as String    : tag,
             kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
             kSecReturnRef as String             : true
         ]
+        
+        if let password = password {
+            let context = LAContext()
+            context.setCredential(password.data(using: .utf8), type: .applicationPassword)
+            
+            query[kSecUseAuthenticationContext as String] = context
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
+        }
         
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
@@ -107,21 +154,30 @@ class Core{
             if status == errSecNotAvailable || status == errSecItemNotFound {
                 return nil
             } else {
+                
                 throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
                
             }
         }
         
  
-        return (item as! SecKey)
+        if let item = item {
+            return (item as! SecKey)
+        } else {
+            return nil
+        }
       
     }
     
     private func preparePrivateKey(accessControlParam: AccessControlParam) throws -> SecKey {
         do {
-            var key = try loadKey(name: accessControlParam.tag)
+            var password: String? = nil
+            if accessControlParam is AppPasswordAccessControlParam{
+                password = (accessControlParam as! AppPasswordAccessControlParam).password
+            }
+            var key = try loadKey(name: accessControlParam.tag, password: password)
             if key == nil {
-                key = try makeAndStorePrivateKey(name: accessControlParam.tag, option: accessControlParam.option)
+                key = try makeAndStorePrivateKey(accessControl: accessControlParam)
             }
             return key!
         } catch {

@@ -23,11 +23,16 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _secureEnclavePlugin = SecureEnclave();
   final String tag = "keychain-coinbit.privateKey";
-  final String tagBiometric = "keychain-coinbit.privateKeyPresence";
+  final String tagBiometric = "keychain-coinbit.privateKey.biometric";
+  final String tagPassword = "keychain-coinbit.privateKey.password";
+  final String tagPasswordBiometric = "keychain-coinbit.privateKey.password.biometric";
+
   bool _isRequiresBiometric = false;
+  bool isUsingAppPassword = false;
   String publicKey = "";
 
   TextEditingController input = TextEditingController();
+  TextEditingController inputPassword = TextEditingController();
 
   Uint8List encrypted = Uint8List(0);
   Uint8List encryptedWithPublicKey = Uint8List(0);
@@ -42,7 +47,13 @@ class _MyAppState extends State<MyApp> {
     _secureEnclavePlugin
         .encrypt(
             message: message,
-            accessControl: AccessControl(
+            accessControl: isUsingAppPassword? AppPasswordAccessControl(
+              password: inputPassword.text,
+              options: _isRequiresBiometric
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
+              tag: _isRequiresBiometric ? tagPasswordBiometric : tagPassword,
+            ):AccessControl(
               options: _isRequiresBiometric
                   ? SecureEnclave.defaultRequiredAuthForAccessControlOption
                   : SecureEnclave.defaulAccessControlOption,
@@ -81,7 +92,13 @@ class _MyAppState extends State<MyApp> {
     _secureEnclavePlugin
         .decrypt(
             message: message,
-            accessControl: AccessControl(
+          accessControl: isUsingAppPassword? AppPasswordAccessControl(
+              password: inputPassword.text,
+              options: _isRequiresBiometric
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
+              tag: _isRequiresBiometric ? tagPasswordBiometric : tagPassword,
+            ):AccessControl(
               options: _isRequiresBiometric
                   ? SecureEnclave.defaultRequiredAuthForAccessControlOption
                   : SecureEnclave.defaulAccessControlOption,
@@ -102,12 +119,18 @@ class _MyAppState extends State<MyApp> {
   void getPublicKey() {
     _secureEnclavePlugin
         .getPublicKey(
-            accessControl: AccessControl(
-      options: _isRequiresBiometric
-          ? SecureEnclave.defaultRequiredAuthForAccessControlOption
-          : SecureEnclave.defaulAccessControlOption,
-      tag: _isRequiresBiometric ? tagBiometric : tag,
-    ))
+            accessControl: isUsingAppPassword? AppPasswordAccessControl(
+              password: inputPassword.text,
+              options: _isRequiresBiometric
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
+              tag: _isRequiresBiometric ? tagPasswordBiometric : tagPassword,
+            ):AccessControl(
+              options: _isRequiresBiometric
+                  ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+                  : SecureEnclave.defaulAccessControlOption,
+              tag: _isRequiresBiometric ? tagBiometric : tag,
+            ))
         .then((result) {
       if (result.error == null) {
         publicKey = result.value ?? "";
@@ -126,6 +149,12 @@ class _MyAppState extends State<MyApp> {
     });
     await _secureEnclavePlugin.removeKey(tagBiometric).then((result) {
       print("delete $tagBiometric = ${result.value}");
+    });
+    await _secureEnclavePlugin.removeKey(tagPasswordBiometric).then((result) {
+      print("delete $tagPasswordBiometric = ${result.value}");
+    });
+    await _secureEnclavePlugin.removeKey(tagPassword).then((result) {
+      print("delete $tagPassword = ${result.value}");
     });
   }
 
@@ -154,6 +183,9 @@ class _MyAppState extends State<MyApp> {
             TextField(
               controller: input,
             ),
+            isUsingAppPassword? TextField(
+              controller: inputPassword,
+            ): Container(),
             Row(
               children: [
                 const Text("Biometric"),
@@ -165,6 +197,23 @@ class _MyAppState extends State<MyApp> {
                     onChanged: (value) {
                       setState(() {
                         _isRequiresBiometric = value;
+                        encrypted = Uint8List(0);
+                        decrypted = "";
+                      });
+                    }),
+              ],
+            ),
+            Row(
+              children: [
+                const Text("App Password"),
+                const SizedBox(
+                  width: 10,
+                ),
+                Switch(
+                    value: isUsingAppPassword,
+                    onChanged: (value) {
+                      setState(() {
+                        isUsingAppPassword = value;
                         encrypted = Uint8List(0);
                         decrypted = "";
                       });

@@ -30,10 +30,22 @@ class AccessControlParam{
                 option.insert(.userPresence)
             case "privateKeyUsage":
                 option.insert(.privateKeyUsage)
+            case "applicationPassword":
+                option.insert(.applicationPassword)
             default:
                 break
             }
         }
     }
     
+}
+
+@available(iOS 11.3, *)
+class AppPasswordAccessControlParam : AccessControlParam{
+    let password: String
+    
+    init(value: Dictionary<String, Any>, password: String) {
+        self.password = password
+        super.init(value: value)
+    }
 }

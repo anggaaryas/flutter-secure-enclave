@@ -28,4 +28,24 @@ const _$AccessControlOptionEnumMap = {
   AccessControlOption.userPresence: 'userPresence',
   AccessControlOption.watch: 'watch',
   AccessControlOption.privateKeyUsage: 'privateKeyUsage',
+  AccessControlOption.applicationPassword: 'applicationPassword',
 };
+
+AppPasswordAccessControl _$AppPasswordAccessControlFromJson(
+        Map<String, dynamic> json) =>
+    AppPasswordAccessControl(
+      password: json['password'] as String,
+      tag: json['tag'] as String,
+      options: (json['options'] as List<dynamic>)
+          .map((e) => $enumDecode(_$AccessControlOptionEnumMap, e))
+          .toList(),
+    );
+
+Map<String, dynamic> _$AppPasswordAccessControlToJson(
+        AppPasswordAccessControl instance) =>
+    <String, dynamic>{
+      'options':
+          instance.options.map((e) => _$AccessControlOptionEnumMap[e]).toList(),
+      'tag': instance.tag,
+      'password': instance.password,
+    };
