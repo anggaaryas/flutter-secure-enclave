@@ -131,12 +131,25 @@ class Core{
         }
     }
     
-    private func loadKey(name: String, password: String?) throws -> SecKey? {
+    private func loadKey(name: String, password: String?, flags: SecAccessControlCreateFlags) throws -> SecKey? {
         let tag = name.data(using: .utf8)!
+        
+        var accessError: Unmanaged<CFError>?
+        let access =
+            SecAccessControlCreateWithFlags(kCFAllocatorDefault,
+                                            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,  // dynamis dari flutter
+                                            flags,
+                                            &accessError)!
+        if let error = accessError {
+            throw error.takeRetainedValue() as Error
+        }
+        
         var query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
             kSecAttrApplicationTag as String    : tag,
             kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+            kSecAttrAccessControl as String     : access,
+            kSecMatchLimit as String            : kSecMatchLimitOne ,
             kSecReturnRef as String             : true
         ]
         
@@ -145,7 +158,6 @@ class Core{
             context.setCredential(password.data(using: .utf8), type: .applicationPassword)
             
             query[kSecUseAuthenticationContext as String] = context
-            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
         }
         
         var item: CFTypeRef?
@@ -175,7 +187,7 @@ class Core{
             if accessControlParam is AppPasswordAccessControlParam{
                 password = (accessControlParam as! AppPasswordAccessControlParam).password
             }
-            var key = try loadKey(name: accessControlParam.tag, password: password)
+            var key = try loadKey(name: accessControlParam.tag, password: password, flags: accessControlParam.option)
             if key == nil {
                 key = try makeAndStorePrivateKey(accessControl: accessControlParam)
             }
