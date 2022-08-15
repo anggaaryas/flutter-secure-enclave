@@ -30,11 +30,13 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
 
 
 abstract class SecureEnclaveBehaviour {
-  Future<MethodResult<Uint8List?>> encrypt({required  String message, required AccessControl accessControl});
+  Future<MethodResult<Uint8List?>> encrypt({required  String message, required String tag});
   Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, required String? publicKeyString});
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl});
-  Future<MethodResult<String?>> getPublicKey({required AccessControl accessControl});
+  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password});
+  Future<MethodResult<String?>> getPublicKey({required String tag});
   Future<MethodResult<bool>> removeKey(String tag);
+  Future<MethodResult<bool>> createKey({required AccessControl accessControl});
+  Future<bool> checkKey(String tag);
 
   Future<MethodResult<dynamic>> cobaError();
 }

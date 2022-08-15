@@ -16,17 +16,18 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   static const defaulAccessControlOption = [AccessControlOption.privateKeyUsage];
 
   @override
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl}) {
+  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password}) {
     return SecureEnclavePlatform.instance.decrypt(
       message: message,
-      accessControl: accessControl,
+      tag: tag,
+      password: password
     );
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt({ required  String message, required AccessControl accessControl}) {
+  Future<MethodResult<Uint8List?>> encrypt({ required  String message, required String tag}) {
     return SecureEnclavePlatform.instance.encrypt(
-      accessControl: accessControl,
+      tag: tag,
       message: message,
     );
   }
@@ -39,9 +40,9 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   }
 
   @override
-  Future<MethodResult<String?>> getPublicKey({ required AccessControl accessControl}) {
+  Future<MethodResult<String?>> getPublicKey({ required String tag}) {
     return SecureEnclavePlatform.instance.getPublicKey(
-      accessControl: accessControl
+      tag: tag
     );
   }
 
@@ -53,5 +54,15 @@ class SecureEnclave implements SecureEnclaveBehaviour{
   @override
   Future<MethodResult> cobaError() {
     return SecureEnclavePlatform.instance.cobaError();
+  }
+
+  @override
+  Future<MethodResult<bool>> createKey({required AccessControl accessControl}) {
+    return SecureEnclavePlatform.instance.createKey(accessControl: accessControl);
+  }
+
+  @override
+  Future<bool> checkKey(String tag) {
+    return SecureEnclavePlatform.instance.checkKey(tag);
   }
 }

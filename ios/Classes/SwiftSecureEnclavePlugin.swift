@@ -13,13 +13,32 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
       switch call.method{
+      case "createKey":
+          let param = call.arguments as? Dictionary<String, Any>
+          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
+          
+          do{
+              try core.createKey(accessControlParam: accessControlParam)
+              result(resultSuccess(data:""))
+          } catch {
+              print("Error info: \(error)")
+              result(resultError(error:error))
+          }
+          
+      case "checkKey":
+          let param = call.arguments as? Dictionary<String, Any>
+          let tag = param!["tag"] as! String
+          
+          let isAvailable = core.checkKey(tag: tag)
+          result(resultSuccess(data: isAvailable))
+          
       case "encrypt" :
           let param = call.arguments as? Dictionary<String, Any>
           let message = param!["message"] as! String
-          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
+          let tag = param!["tag"] as! String
                 
           do{
-              let encrypted = try core.encrypt(message: message, accessControlParam: accessControlParam)
+              let encrypted = try core.encrypt(message: message, tag: tag)
               result(resultSuccess(data:encrypted))
           } catch {
               print("Error info: \(error)")
@@ -44,10 +63,15 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
       case "decrypt" :
           let param = call.arguments as? Dictionary<String, Any>
           let message = param!["message"] as! FlutterStandardTypedData
-          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
-        
+          let tag = param!["tag"] as! String
+          
+          var password : String? = nil
+          if let pwd = param!["password"] as? String {
+              password = pwd
+          }
+          
           do{
-              let decrypted = try core.decrypt(message: message.data, accessControlParam: accessControlParam)
+              let decrypted = try core.decrypt(message: message.data, tag: tag, password: password)
               result(resultSuccess(data:decrypted))
           } catch {
               print("Error info: \(error)")
@@ -56,10 +80,10 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
           
       case "getPublicKeyString":
           let param = call.arguments as? Dictionary<String, Any>
-          let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
+          let tag = param!["tag"] as! String
           
           do{
-              let key = try core.getPublicKeyString(accessControlParam: accessControlParam)
+              let key = try core.getPublicKeyString(tag: tag)
               result(resultSuccess(data:key))
           } catch {
               print("Error info: \(error)")

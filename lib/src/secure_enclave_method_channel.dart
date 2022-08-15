@@ -14,10 +14,11 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   final methodChannel = const MethodChannel('secure_enclave');
 
   @override
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  AccessControl accessControl}) async {
+  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password}) async {
     final result = await methodChannel.invokeMethod<dynamic>('decrypt', {
       "message": message,
-      "accessControl": accessControl.toJson(),
+      "tag": tag,
+      "password": password
     });
 
     return MethodResult.fromMap(
@@ -29,10 +30,10 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt({required String message, required AccessControl accessControl}) async {
+  Future<MethodResult<Uint8List?>> encrypt({required String message, required String tag}) async {
     final result = await methodChannel.invokeMethod<dynamic>('encrypt', {
       "message": message,
-      "accessControl": accessControl.toJson(),
+      "tag": tag,
     });
 
 
@@ -58,9 +59,9 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   }
 
   @override
-  Future<MethodResult<String?>> getPublicKey({ required AccessControl accessControl}) async {
+  Future<MethodResult<String?>> getPublicKey({ required String tag}) async {
     final result = await methodChannel.invokeMethod<dynamic>('getPublicKeyString', {
-      "accessControl": accessControl.toJson(),
+      "tag": tag,
     });
 
     return MethodResult.fromMap(
@@ -95,5 +96,28 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
           return true;
         }
     );
+  }
+
+  @override
+  Future<MethodResult<bool>> createKey({required AccessControl accessControl}) async {
+    final result = await methodChannel.invokeMethod<dynamic>('createKey', {
+      "accessControl": accessControl.toJson(),
+    });
+
+    return MethodResult.fromMap(
+        map: Map<String, dynamic>.from(result),
+        decoder: (rawData){
+          return rawData as bool? ?? false;
+        }
+    );
+  }
+
+  @override
+  Future<bool> checkKey(String tag) async {
+    final result = await methodChannel.invokeMethod<dynamic>('checkKey', {
+      "tag": tag,
+    });
+
+    return result;
   }
 }

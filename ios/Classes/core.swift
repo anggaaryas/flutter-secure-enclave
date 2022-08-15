@@ -131,24 +131,13 @@ class Core{
         }
     }
     
-    private func loadKey(name: String, password: String?, flags: SecAccessControlCreateFlags) throws -> SecKey? {
+    private func loadKey(name: String, password: String?) throws -> SecKey? {
         let tag = name.data(using: .utf8)!
-        
-        var accessError: Unmanaged<CFError>?
-        let access =
-            SecAccessControlCreateWithFlags(kCFAllocatorDefault,
-                                            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,  // dynamis dari flutter
-                                            flags,
-                                            &accessError)!
-        if let error = accessError {
-            throw error.takeRetainedValue() as Error
-        }
         
         var query: [String: Any] = [
             kSecClass as String                 : kSecClassKey,
             kSecAttrApplicationTag as String    : tag,
             kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-            kSecAttrAccessControl as String     : access,
             kSecMatchLimit as String            : kSecMatchLimitOne ,
             kSecReturnRef as String             : true
         ]
@@ -163,13 +152,7 @@ class Core{
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         guard status == errSecSuccess else {
-            if status == errSecNotAvailable || status == errSecItemNotFound {
-                return nil
-            } else {
-                
-                throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
-               
-            }
+             throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
         }
         
  
@@ -181,29 +164,43 @@ class Core{
       
     }
     
-    private func preparePrivateKey(accessControlParam: AccessControlParam) throws -> SecKey {
+    func checkKey(tag: String) -> bool {
         do {
-            var password: String? = nil
-            if accessControlParam is AppPasswordAccessControlParam{
-                password = (accessControlParam as! AppPasswordAccessControlParam).password
+            let key = try loadKey(name: tag, password: nil)
+            if let key = key {
+                return true
+            }else {
+                return false
             }
-            var key = try loadKey(name: accessControlParam.tag, password: password, flags: accessControlParam.option)
-            if key == nil {
-                key = try makeAndStorePrivateKey(accessControl: accessControlParam)
+        } catch {
+            return false
+        }
+    }
+    
+    private func preparePrivateKey(tag: String, password: String?) throws -> SecKey {
+        do {
+            let key = try loadKey(name: tag, password: password)
+            if let key = key {
+                return key
+            }else {
+                throw CustomError.runtimeError("Seharusnya nggak null!")
             }
-            return key!
         } catch {
             throw error
         }
     }
     
-    func getPublicKeyString(accessControlParam: AccessControlParam) throws -> String? {
+    func createKey(accessControlParam: AccessControlParam) throws {
+       _ = try makeAndStorePrivateKey(accessControl: accessControlParam)
+    }
+    
+    func getPublicKeyString(tag: String) throws -> String? {
        
             let privateKey : SecKey
             let publicKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
+                privateKey = try preparePrivateKey(tag: tag, password: nil)
                 publicKey = try getPublicKey(privateKey: privateKey)
             } catch{
                 throw error
@@ -287,13 +284,13 @@ class Core{
         
     }
     
-    func encrypt( message: String, accessControlParam: AccessControlParam) throws -> FlutterStandardTypedData? {
+    func encrypt( message: String, tag: String) throws -> FlutterStandardTypedData? {
         
             let privateKey : SecKey
             let publicKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
+                privateKey = try preparePrivateKey(tag: tag, password: nil)
                 publicKey = try getPublicKey(privateKey: privateKey)
             } catch{
                 throw error
@@ -323,12 +320,12 @@ class Core{
     }
     
     
-    func decrypt(message: Data, accessControlParam: AccessControlParam) throws -> String? {
+    func decrypt(message: Data, tag: String, password: String?) throws -> String? {
 
             let privateKey : SecKey
             
             do{
-                privateKey = try preparePrivateKey(accessControlParam: accessControlParam)
+                privateKey = try preparePrivateKey(tag: tag, password: password)
             } catch{
                 throw error
             }
