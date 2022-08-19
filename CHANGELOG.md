@@ -17,4 +17,8 @@
 *05-07-2022*
 - separate encryptWithPublicKey and encrypt function
 
+## 0.0.3
 
+*19-08-2022*
+- simplify encrypt and decrypt method
+- add appPassword option
