@@ -14,61 +14,17 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
   final methodChannel = const MethodChannel('secure_enclave');
 
   @override
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password}) async {
-    final result = await methodChannel.invokeMethod<dynamic>('decrypt', {
-      "message": message,
-      "tag": tag,
-      "password": password
+  Future<MethodResult<bool>> createKey(
+      {required AccessControl accessControl}) async {
+    final result = await methodChannel.invokeMethod<dynamic>('createKey', {
+      "accessControl": accessControl.toJson(),
     });
 
     return MethodResult.fromMap(
       map: Map<String, dynamic>.from(result),
-      decoder: (rawData){
-        return rawData as String?;
-      }
-    );
-  }
-
-  @override
-  Future<MethodResult<Uint8List?>> encrypt({required String message, required String tag}) async {
-    final result = await methodChannel.invokeMethod<dynamic>('encrypt', {
-      "message": message,
-      "tag": tag,
-    });
-
-
-    return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return rawData as Uint8List?;
-        }
-    );
-  }
-
-  Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, required String? publicKeyString}) async {
-    final result = await methodChannel.invokeMethod<dynamic>("encryptWithCustomPublicKey", {
-      "message": message,
-      "publicKeyString": publicKeyString
-    });
-    return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return rawData as Uint8List?;
-        }
-    );
-  }
-
-  @override
-  Future<MethodResult<String?>> getPublicKey({ required String tag}) async {
-    final result = await methodChannel.invokeMethod<dynamic>('getPublicKeyString', {
-      "tag": tag,
-    });
-
-    return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return rawData as String?;
-        }
+      decoder: (rawData) {
+        return rawData as bool? ?? false;
+      },
     );
   }
 
@@ -79,45 +35,67 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
     });
 
     return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return rawData as bool? ?? false;
-        }
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as bool? ?? false;
+      },
     );
   }
 
   @override
-  Future<MethodResult> cobaError() async {
-    final result = await methodChannel.invokeMethod<dynamic>('cobaError');
+  Future<MethodResult<String?>> getPublicKey(
+      {required String tag, String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'getPublicKey',
+      {
+        "tag": tag,
+        "password": password,
+      },
+    );
 
     return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return true;
-        }
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as String?;
+      },
     );
   }
 
   @override
-  Future<MethodResult<bool>> createKey({required AccessControl accessControl}) async {
-    final result = await methodChannel.invokeMethod<dynamic>('createKey', {
-      "accessControl": accessControl.toJson(),
-    });
+  Future<MethodResult<Uint8List?>> encrypt(
+      {required String message, required String tag, String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'encrypt',
+      {
+        "message": message,
+        "tag": tag,
+        "password": password,
+      },
+    );
 
     return MethodResult.fromMap(
-        map: Map<String, dynamic>.from(result),
-        decoder: (rawData){
-          return rawData as bool? ?? false;
-        }
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as Uint8List?;
+      },
     );
   }
 
   @override
-  Future<bool> checkKey(String tag) async {
-    final result = await methodChannel.invokeMethod<dynamic>('checkKey', {
-      "tag": tag,
-    });
+  Future<MethodResult<String?>> decrypt(
+      {required Uint8List message,
+      required String tag,
+      String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'decrypt',
+      {"message": message, "tag": tag, "password": password},
+    );
 
-    return result;
+    return MethodResult.fromMap(
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as String?;
+      },
+    );
   }
 }

@@ -6,7 +6,8 @@ import 'package:secure_enclave/src/model/method_result.dart';
 
 import 'secure_enclave_method_channel.dart';
 
-abstract class SecureEnclavePlatform extends PlatformInterface implements SecureEnclaveBehaviour {
+abstract class SecureEnclavePlatform extends PlatformInterface
+    implements SecureEnclaveBehaviour {
   /// Constructs a SecureEnclavePlatform.
   SecureEnclavePlatform() : super(token: _token);
 
@@ -18,7 +19,7 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
   ///
   /// Defaults to [MethodChannelSecureEnclave].
   static SecureEnclavePlatform get instance => _instance;
-  
+
   /// Platform-specific implementations should set this with their own
   /// platform-specific class that extends [SecureEnclavePlatform] when
   /// they register themselves.
@@ -28,15 +29,20 @@ abstract class SecureEnclavePlatform extends PlatformInterface implements Secure
   }
 }
 
-
 abstract class SecureEnclaveBehaviour {
-  Future<MethodResult<Uint8List?>> encrypt({required  String message, required String tag});
-  Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, required String? publicKeyString});
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password});
-  Future<MethodResult<String?>> getPublicKey({required String tag});
-  Future<MethodResult<bool>> removeKey(String tag);
   Future<MethodResult<bool>> createKey({required AccessControl accessControl});
-  Future<bool> checkKey(String tag);
+  Future<MethodResult<bool>> removeKey(String tag);
+  Future<MethodResult<String?>> getPublicKey({
+    required String tag,
+    String? password,
+  });
 
-  Future<MethodResult<dynamic>> cobaError();
+  Future<MethodResult<Uint8List?>> encrypt({
+    required String message,
+    required String tag,
+    String? password,
+  });
+
+  Future<MethodResult<String?>> decrypt(
+      {required Uint8List message, required String tag, String? password});
 }

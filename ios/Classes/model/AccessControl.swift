@@ -32,6 +32,10 @@ class AccessControlParam{
                 option.insert(.privateKeyUsage)
             case "applicationPassword":
                 option.insert(.applicationPassword)
+            case "or":
+                option.insert(.or)
+            case "and":
+                option.insert(.and)
             default:
                 break
             }

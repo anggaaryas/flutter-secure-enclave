@@ -23,10 +23,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _secureEnclavePlugin = SecureEnclave();
-  final String tag = "keychain-coinbit.privateKey";
-  final String tagBiometric = "keychain-coinbit.privateKey.biometric";
-  final String tagPassword = "keychain-coinbit.privateKey.password";
-  final String tagPasswordBiometric = "keychain-coinbit.privateKey.password.biometric";
+  final String tag = "keychain-test.privateKey";
+  final String tagBiometric = "keychain-test.privateKey.biometric";
+  final String tagPassword = "keychain-test.privateKey.password";
+  final String tagPasswordBiometric =
+      "keychain-test.privateKey.password.biometric";
 
   bool _isRequiresBiometric = false;
   bool isUsingAppPassword = false;
@@ -46,9 +47,7 @@ class _MyAppState extends State<MyApp> {
 
   void encrypt(String message) {
     _secureEnclavePlugin
-        .encrypt(
-            message: message,
-            tag: getTag())
+        .encrypt(message: message, tag: getTag())
         .then((result) => setState(() {
               if (result.error == null) {
                 encrypted = result.value ?? Uint8List(0);
@@ -61,58 +60,83 @@ class _MyAppState extends State<MyApp> {
   void showError(MethodResult result) {
     final error = result.error!;
     _messangerKey.currentState?.showSnackBar(SnackBar(
-        content:
-            Text('code = ${error.code}  |  desc = ${error.desc}')));
+        content: Text('code = ${error.code}  |  desc = ${error.desc}')));
   }
 
-  void createKey(){
-    _secureEnclavePlugin.createKey(
-        accessControl: isUsingAppPassword? AppPasswordAccessControl(
-            password: inputPassword.text,
-            tag: getTag(),
-            options: getOption())
-        : AccessControl(options: getOption(), tag: getTag())
-    ).then((result){
-      if(result.error == null){
-        _messangerKey.currentState?.showSnackBar(SnackBar(
-            content:
-            Text('success create key = ${getTag()}')));
+  void createKey() {
+    _secureEnclavePlugin
+        .createKey(
+      accessControl: isUsingAppPassword && _isRequiresBiometric
+          ? AppPasswordAccessControl(
+              password: inputPassword.text,
+              tag: getTag(),
+              options: [
+                  AccessControlOption.or,
+                  AccessControlOption.applicationPassword,
+                  // AccessControlOption.userPresence,
+                  AccessControlOption.privateKeyUsage
+                ])
+          : _isRequiresBiometric
+              ? AccessControl(
+                  tag: getTag(),
+                  options: [
+                    AccessControlOption.userPresence,
+                    AccessControlOption.privateKeyUsage
+                  ],
+                )
+              : isUsingAppPassword
+                  ? AppPasswordAccessControl(
+                      password: inputPassword.text,
+                      tag: getTag(),
+                      options: [
+                        AccessControlOption.applicationPassword,
+                        AccessControlOption.privateKeyUsage
+                      ],
+                    )
+                  : AccessControl(
+                      options: [AccessControlOption.privateKeyUsage],
+                      tag: getTag(),
+                    ),
+    )
+        .then((result) {
+      if (result.error == null) {
+        _messangerKey.currentState?.showSnackBar(
+            SnackBar(content: Text('success create key = ${getTag()}')));
       } else {
         showError(result);
       }
     });
   }
 
-  void checkKey(){
-    _secureEnclavePlugin.checkKey(getTag()).then((value){
-      _messangerKey.currentState?.showSnackBar(SnackBar(
-          content:
-          Text('tag = ${getTag()}  |   $value')));
-    });
-  }
+  // void checkKey(){
+  //   _secureEnclavePlugin.checkKey(getTag()).then((value){
+  //     _messangerKey.currentState?.showSnackBar(SnackBar(
+  //         content:
+  //         Text('tag = ${getTag()}  |   $value')));
+  //   });
+  // }
 
-  List<AccessControlOption> getOption() => _isRequiresBiometric? SecureEnclave.defaultRequiredAuthForAccessControlOption : SecureEnclave.defaulAccessControlOption;
+  List<AccessControlOption> getOption() => _isRequiresBiometric
+      ? SecureEnclave.defaultRequiredAuthForAccessControlOption
+      : SecureEnclave.defaulAccessControlOption;
 
-  void encryptWithPublicKey(String message) {
-    _secureEnclavePlugin
-        .encryptWithPublicKey(
-            message: message,
-            publicKeyString: publicKey)
-        .then((result) => setState(() {
-              if (result.error == null) {
-                encryptedWithPublicKey = result.value ?? Uint8List(0);
-              } else {
-                showError(result);
-              }
-            }));
-  }
+  // void encryptWithPublicKey(String message) {
+  //   _secureEnclavePlugin
+  //       .encryptWithPublicKey(
+  //           message: message,
+  //           publicKeyString: publicKey)
+  //       .then((result) => setState(() {
+  //             if (result.error == null) {
+  //               encryptedWithPublicKey = result.value ?? Uint8List(0);
+  //             } else {
+  //               showError(result);
+  //             }
+  //           }));
+  // }
 
   void decrypt(Uint8List message, String? password) {
     _secureEnclavePlugin
-        .decrypt(
-            message: message,
-          tag:   getTag(),
-          password: password)
+        .decrypt(message: message, tag: getTag(), password: password)
         .then((result) => setState(() {
               if (result.error == null) {
                 decrypted = result.value ?? "";
@@ -122,12 +146,16 @@ class _MyAppState extends State<MyApp> {
             }));
   }
 
-  String getTag() => isUsingAppPassword ? _isRequiresBiometric ? tagPasswordBiometric : tagPassword : _isRequiresBiometric? tagBiometric: tag;
+  String getTag() => isUsingAppPassword
+      ? _isRequiresBiometric
+          ? tagPasswordBiometric
+          : tagPassword
+      : _isRequiresBiometric
+          ? tagBiometric
+          : tag;
 
-  void getPublicKey() {
-    _secureEnclavePlugin
-        .getPublicKey(tag: getTag())
-        .then((result) {
+  void getSecKey() {
+    _secureEnclavePlugin.getPublicKey(tag: getTag()).then((result) {
       if (result.error == null) {
         publicKey = result.value ?? "";
         setState(() {});
@@ -152,17 +180,17 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void cobaError() {
-    _secureEnclavePlugin.cobaError().then((result) {
-      if (result.error == null) {
-        print("Kok Sukses???");
-      } else {
-        final error = result.error!;
-        _messangerKey.currentState?.showSnackBar(SnackBar(
-            content: Text('code = ${error.code}  |  desc = ${error.desc}')));
-      }
-    });
-  }
+  // void cobaError() {
+  //   _secureEnclavePlugin.cobaError().then((result) {
+  //     if (result.error == null) {
+  //       print("Kok Sukses???");
+  //     } else {
+  //       final error = result.error!;
+  //       _messangerKey.currentState?.showSnackBar(SnackBar(
+  //           content: Text('code = ${error.code}  |  desc = ${error.desc}')));
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -177,9 +205,11 @@ class _MyAppState extends State<MyApp> {
             TextField(
               controller: input,
             ),
-            isUsingAppPassword? TextField(
-              controller: inputPassword,
-            ): Container(),
+            isUsingAppPassword
+                ? TextField(
+                    controller: inputPassword,
+                  )
+                : Container(),
             Row(
               children: [
                 const Text("Biometric"),
@@ -214,11 +244,11 @@ class _MyAppState extends State<MyApp> {
                     }),
               ],
             ),
-            TextButton(
-                onPressed: () {
-                  checkKey();
-                },
-                child: Text("check Key")),
+            // TextButton(
+            //     onPressed: () {
+            //       checkKey();
+            //     },
+            //     child: Text("check Key")),
             TextButton(
                 onPressed: () {
                   createKey();
@@ -233,9 +263,16 @@ class _MyAppState extends State<MyApp> {
             Text(encrypted.toString()),
             TextButton(
                 onPressed: () {
-                  decrypt(encrypted, isUsingAppPassword? inputPassword.text : null);
+                  decrypt(encrypted,
+                      isUsingAppPassword ? inputPassword.text : null);
                 },
                 child: Text("decrypt!")),
+            TextButton(
+                onPressed: () {
+                  decrypt(encrypted, inputPassword.text);
+                },
+                child: Text(
+                    "decrypt kalau pake biometric + password, tapi decrypt pake biometric")),
             Text(decrypted),
             Divider(),
             TextButton(
@@ -244,30 +281,31 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: Text("reset key")),
             Divider(),
-            TextButton(
-                onPressed: () {
-                  cobaError();
-                },
-                child: Text("coba Error")),
-            Divider(),
+            // TextButton(
+            //     onPressed: () {
+            //       cobaError();
+            //     },
+            //     child: Text("coba Error")),
+            // Divider(),
             Text(publicKey),
             TextButton(
                 onPressed: () {
-                  getPublicKey();
+                  getSecKey();
                 },
                 child: Text("get public key")),
-            TextButton(
-                onPressed: () {
-                  encryptWithPublicKey(input.text);
-                },
-                child: Text("encrypt with public key")),
-            Text(encryptedWithPublicKey.toString()),
-            TextButton(
-                onPressed: () {
-                  decrypted = "";
-                  decrypt(encryptedWithPublicKey, isUsingAppPassword? inputPassword.text: null);
-                },
-                child: Text("decrypt from encryptedWithPublicKey")),
+            // TextButton(
+            //     onPressed: () {
+            //       encryptWithPublicKey(input.text);
+            //     },
+            //     child: Text("encrypt with public key")),
+            // Text(encryptedWithPublicKey.toString()),
+            // TextButton(
+            //     onPressed: () {
+            //       decrypted = "";
+            //       decrypt(encryptedWithPublicKey,
+            //           isUsingAppPassword ? inputPassword.text : null);
+            //     },
+            //     child: Text("decrypt from encryptedWithPublicKey")),
           ],
         ),
       ),

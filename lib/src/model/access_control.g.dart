@@ -29,6 +29,8 @@ const _$AccessControlOptionEnumMap = {
   AccessControlOption.watch: 'watch',
   AccessControlOption.privateKeyUsage: 'privateKeyUsage',
   AccessControlOption.applicationPassword: 'applicationPassword',
+  AccessControlOption.or: 'or',
+  AccessControlOption.and: 'and',
 };
 
 AppPasswordAccessControl _$AppPasswordAccessControlFromJson(

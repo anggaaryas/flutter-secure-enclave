@@ -164,10 +164,10 @@ class Core{
       
     }
     
-    func checkKey(tag: String) -> bool {
+    func checkKey(tag: String) -> Bool {
         do {
             let key = try loadKey(name: tag, password: nil)
-            if let key = key {
+            if key != nil {
                 return true
             }else {
                 return false
