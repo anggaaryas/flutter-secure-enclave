@@ -22,3 +22,8 @@
 *19-08-2022*
 - simplify encrypt and decrypt method
 - add appPassword option
+
+## 0.0.3+rev1
+
+*19-08-2022*
+- update readme
