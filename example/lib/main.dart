@@ -23,10 +23,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _secureEnclavePlugin = SecureEnclave();
-  final String tag = "keychain-coinbit.privateKey";
-  final String tagBiometric = "keychain-coinbit.privateKey.biometric";
-  final String tagPassword = "keychain-coinbit.privateKey.password";
-  final String tagPasswordBiometric = "keychain-coinbit.privateKey.password.biometric";
+  final String tag = "app.privateKey";
+  final String tagBiometric = "app.privateKey.biometric";
+  final String tagPassword = "app.privateKey.password";
+  final String tagPasswordBiometric = "app.privateKey.password.biometric";
 
   bool _isRequiresBiometric = false;
   bool isUsingAppPassword = false;
