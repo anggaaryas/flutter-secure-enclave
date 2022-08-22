@@ -69,4 +69,10 @@ enum AccessControlOption {
 
   @JsonValue("applicationPassword")
   applicationPassword,
+
+  @JsonValue("and")
+  and,
+
+  @JsonValue("or")
+  or,
 }
