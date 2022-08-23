@@ -20,6 +20,9 @@ protocol SECoreProtocol {
     // get SecKey key from secure enclave (private method)
     func getSecKey(tag: String, password: String?) throws -> SecKey?
     
+    // get status SecKey key from secure enclave (private method)
+    func getStatusSecKey(tag: String, password: String?) throws -> Bool?
+    
     // get publicKey key from secure enclave
     func getPublicKey(tag: String, password: String?) throws -> String?
     
@@ -39,6 +42,7 @@ class SECore : SECoreProtocol {
         let secAccessControlCreateFlags: SecAccessControlCreateFlags = accessControlParam.option
         let secAttrApplicationTag: Data? = accessControlParam.tag.data(using: .utf8)
         var accessError: Unmanaged<CFError>?
+        print(secAccessControlCreateFlags)
         let secAttrAccessControl =
             SecAccessControlCreateWithFlags(
                 kCFAllocatorDefault,
@@ -156,6 +160,38 @@ class SECore : SECoreProtocol {
             return (item as! SecKey)
         } else {
             return nil
+        }
+    }
+    
+    func getStatusSecKey(tag: String, password: String?) throws -> Bool?  {
+        let secAttrApplicationTag = tag.data(using: .utf8)!
+        
+        var query: [String: Any] = [
+            kSecClass as String                 : kSecClassKey,
+            kSecAttrApplicationTag as String    : secAttrApplicationTag,
+            kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+            kSecMatchLimit as String            : kSecMatchLimitOne ,
+            kSecReturnRef as String             : true
+        ]
+        
+        if let password = password {
+            let context = LAContext()
+            context.setCredential(password.data(using: .utf8), type: .applicationPassword)
+            
+            query[kSecUseAuthenticationContext as String] = context
+        }
+        
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess else {
+             throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+        }
+        
+ 
+        if item != nil {
+            return true
+        } else {
+            return false
         }
     }
     

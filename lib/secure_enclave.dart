@@ -52,4 +52,11 @@ class SecureEnclave implements SecureEnclaveBehaviour {
     return SecureEnclavePlatform.instance
         .decrypt(message: message, tag: tag, password: password);
   }
+
+  @override
+  Future<MethodResult<bool?>> getStatusSecKey(
+      {required String tag, String? password}) {
+    return SecureEnclavePlatform.instance
+        .getStatusSecKey(tag: tag, password: password);
+  }
 }

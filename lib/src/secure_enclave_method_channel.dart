@@ -98,4 +98,23 @@ class MethodChannelSecureEnclave extends SecureEnclavePlatform {
       },
     );
   }
+
+  @override
+  Future<MethodResult<bool?>> getStatusSecKey(
+      {required String tag, String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'getStatusSecKey',
+      {
+        "tag": tag,
+        "password": password,
+      },
+    );
+
+    return MethodResult.fromMap(
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as bool?;
+      },
+    );
+  }
 }

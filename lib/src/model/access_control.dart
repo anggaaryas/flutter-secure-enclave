@@ -12,9 +12,9 @@ class AccessControl {
 
   factory AccessControl(
       {required List<AccessControlOption> options, required String tag}) {
-    // if (!options.contains(AccessControlOption.privateKeyUsage)) {
-    //   options.add(AccessControlOption.privateKeyUsage);
-    // }
+    if (!options.contains(AccessControlOption.privateKeyUsage)) {
+      options.add(AccessControlOption.privateKeyUsage);
+    }
     return AccessControl._(options: options, tag: tag);
   }
 
@@ -40,12 +40,12 @@ class AppPasswordAccessControl extends AccessControl {
       required List<AccessControlOption> options}) {
     List<AccessControlOption> temp = List.from(options);
 
-    // if (!temp.contains(AccessControlOption.applicationPassword)) {
-    //   temp.add(AccessControlOption.applicationPassword);
-    // }
-    // if (!temp.contains(AccessControlOption.privateKeyUsage)) {
-    //   temp.add(AccessControlOption.privateKeyUsage);
-    // }
+    if (!temp.contains(AccessControlOption.applicationPassword)) {
+      temp.add(AccessControlOption.applicationPassword);
+    }
+    if (!temp.contains(AccessControlOption.privateKeyUsage)) {
+      temp.add(AccessControlOption.privateKeyUsage);
+    }
     print(temp);
     return AppPasswordAccessControl._(
         password: password, tag: tag, options: temp);

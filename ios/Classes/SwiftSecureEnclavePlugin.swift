@@ -174,6 +174,22 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
               result(resultError(error:error))
           }
           
+      case "getStatusSecKey":
+          do{
+              let param = call.arguments as? Dictionary<String, Any>
+              let tag = param!["tag"] as! String
+              var password : String? = nil
+              if let pwd = param!["password"] as? String {
+                password = pwd
+              }
+                            
+              let key = try seCore.getStatusSecKey(tag: tag, password: password)
+              result(resultSuccess(data:key!))
+          } catch {
+              print("Error info: \(error)")
+              result(resultSuccess(data:false))
+          }
+          
       case "getPublicKey":
           do{
               let param = call.arguments as? Dictionary<String, Any>
@@ -216,6 +232,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
               if let pwd = param!["password"] as? String {
                   password = pwd
               }
+              print("ini password" + String((password ?? "")));
               
               let decrypted = try seCore.decrypt(message: message.data, tag: tag, password: password)
               result(resultSuccess(data:decrypted))

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:secure_enclave/secure_enclave.dart';
 import 'package:secure_enclave/src/model/method_result.dart';
+import 'package:secure_enclave_example/dashboard.dart';
 
 final _messangerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -71,9 +72,9 @@ class _MyAppState extends State<MyApp> {
               password: inputPassword.text,
               tag: getTag(),
               options: [
-                  AccessControlOption.or,
-                  AccessControlOption.applicationPassword,
-                  // AccessControlOption.userPresence,
+                  AccessControlOption.biometryAny,
+                  // AccessControlOption.or,
+                  // AccessControlOption.applicationPassword,
                   AccessControlOption.privateKeyUsage
                 ])
           : _isRequiresBiometric
@@ -196,119 +197,120 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: _messangerKey,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: ListView(
-          children: [
-            TextField(
-              controller: input,
-            ),
-            isUsingAppPassword
-                ? TextField(
-                    controller: inputPassword,
-                  )
-                : Container(),
-            Row(
-              children: [
-                const Text("Biometric"),
-                const SizedBox(
-                  width: 10,
-                ),
-                Switch(
-                    value: _isRequiresBiometric,
-                    onChanged: (value) {
-                      setState(() {
-                        _isRequiresBiometric = value;
-                        encrypted = Uint8List(0);
-                        decrypted = "";
-                      });
-                    }),
-              ],
-            ),
-            Row(
-              children: [
-                const Text("App Password"),
-                const SizedBox(
-                  width: 10,
-                ),
-                Switch(
-                    value: isUsingAppPassword,
-                    onChanged: (value) {
-                      setState(() {
-                        isUsingAppPassword = value;
-                        encrypted = Uint8List(0);
-                        decrypted = "";
-                      });
-                    }),
-              ],
-            ),
-            // TextButton(
-            //     onPressed: () {
-            //       checkKey();
-            //     },
-            //     child: Text("check Key")),
-            TextButton(
-                onPressed: () {
-                  createKey();
-                },
-                child: Text("create Key!")),
-            TextButton(
-                onPressed: () {
-                  encrypt(input.text);
-                  // input.clear();
-                },
-                child: Text("encrypt!")),
-            Text(encrypted.toString()),
-            TextButton(
-                onPressed: () {
-                  decrypt(encrypted,
-                      isUsingAppPassword ? inputPassword.text : null);
-                },
-                child: Text("decrypt!")),
-            TextButton(
-                onPressed: () {
-                  decrypt(encrypted, inputPassword.text);
-                },
-                child: Text(
-                    "decrypt kalau pake biometric + password, tapi decrypt pake biometric")),
-            Text(decrypted),
-            Divider(),
-            TextButton(
-                onPressed: () {
-                  removeKey();
-                },
-                child: Text("reset key")),
-            Divider(),
-            // TextButton(
-            //     onPressed: () {
-            //       cobaError();
-            //     },
-            //     child: Text("coba Error")),
-            // Divider(),
-            Text(publicKey),
-            TextButton(
-                onPressed: () {
-                  getSecKey();
-                },
-                child: Text("get public key")),
-            // TextButton(
-            //     onPressed: () {
-            //       encryptWithPublicKey(input.text);
-            //     },
-            //     child: Text("encrypt with public key")),
-            // Text(encryptedWithPublicKey.toString()),
-            // TextButton(
-            //     onPressed: () {
-            //       decrypted = "";
-            //       decrypt(encryptedWithPublicKey,
-            //           isUsingAppPassword ? inputPassword.text : null);
-            //     },
-            //     child: Text("decrypt from encryptedWithPublicKey")),
-          ],
-        ),
-      ),
+      home: const Dashboard(),
+      // home: Scaffold(
+      //   appBar: AppBar(
+      //     title: const Text('Plugin example app'),
+      //   ),
+      //   body: ListView(
+      //     children: [
+      //       TextField(
+      //         controller: input,
+      //       ),
+      //       isUsingAppPassword
+      //           ? TextField(
+      //               controller: inputPassword,
+      //             )
+      //           : Container(),
+      //       Row(
+      //         children: [
+      //           const Text("Biometric"),
+      //           const SizedBox(
+      //             width: 10,
+      //           ),
+      //           Switch(
+      //               value: _isRequiresBiometric,
+      //               onChanged: (value) {
+      //                 setState(() {
+      //                   _isRequiresBiometric = value;
+      //                   encrypted = Uint8List(0);
+      //                   decrypted = "";
+      //                 });
+      //               }),
+      //         ],
+      //       ),
+      //       Row(
+      //         children: [
+      //           const Text("App Password"),
+      //           const SizedBox(
+      //             width: 10,
+      //           ),
+      //           Switch(
+      //               value: isUsingAppPassword,
+      //               onChanged: (value) {
+      //                 setState(() {
+      //                   isUsingAppPassword = value;
+      //                   encrypted = Uint8List(0);
+      //                   decrypted = "";
+      //                 });
+      //               }),
+      //         ],
+      //       ),
+      //       // TextButton(
+      //       //     onPressed: () {
+      //       //       checkKey();
+      //       //     },
+      //       //     child: Text("check Key")),
+      //       TextButton(
+      //           onPressed: () {
+      //             createKey();
+      //           },
+      //           child: Text("create Key!")),
+      //       TextButton(
+      //           onPressed: () {
+      //             encrypt(input.text);
+      //             // input.clear();
+      //           },
+      //           child: Text("encrypt!")),
+      //       Text(encrypted.toString()),
+      //       TextButton(
+      //           onPressed: () {
+      //             decrypt(encrypted,
+      //                 isUsingAppPassword ? inputPassword.text : null);
+      //           },
+      //           child: Text("decrypt!")),
+      //       TextButton(
+      //           onPressed: () {
+      //             decrypt(encrypted, inputPassword.text);
+      //           },
+      //           child: Text(
+      //               "decrypt kalau pake biometric + password, tapi decrypt pake biometric")),
+      //       Text(decrypted),
+      //       Divider(),
+      //       TextButton(
+      //           onPressed: () {
+      //             removeKey();
+      //           },
+      //           child: Text("reset key")),
+      //       Divider(),
+      //       // TextButton(
+      //       //     onPressed: () {
+      //       //       cobaError();
+      //       //     },
+      //       //     child: Text("coba Error")),
+      //       // Divider(),
+      //       Text(publicKey),
+      //       TextButton(
+      //           onPressed: () {
+      //             getSecKey();
+      //           },
+      //           child: Text("get public key")),
+      //       // TextButton(
+      //       //     onPressed: () {
+      //       //       encryptWithPublicKey(input.text);
+      //       //     },
+      //       //     child: Text("encrypt with public key")),
+      //       // Text(encryptedWithPublicKey.toString()),
+      //       // TextButton(
+      //       //     onPressed: () {
+      //       //       decrypted = "";
+      //       //       decrypt(encryptedWithPublicKey,
+      //       //           isUsingAppPassword ? inputPassword.text : null);
+      //       //     },
+      //       //     child: Text("decrypt from encryptedWithPublicKey")),
+      //     ],
+      //   ),
+      // ),
     );
   }
 }

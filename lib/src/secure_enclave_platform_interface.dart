@@ -37,6 +37,11 @@ abstract class SecureEnclaveBehaviour {
     String? password,
   });
 
+  Future<MethodResult<bool?>> getStatusSecKey({
+    required String tag,
+    String? password,
+  });
+
   Future<MethodResult<Uint8List?>> encrypt({
     required String message,
     required String tag,
