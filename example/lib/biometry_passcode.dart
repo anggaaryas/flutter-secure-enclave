@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:secure_enclave/secure_enclave.dart';
 import 'package:convert/convert.dart';
 
 class BiometryPasscode extends StatefulWidget {

@@ -9,10 +9,12 @@ import Foundation
 
 @available(iOS 11.3, *)
 class AccessControlParam{
+    let password: String?
     let tag : String
     var option: SecAccessControlCreateFlags = []
     
     init(value: Dictionary<String, Any>){
+        self.password = value["password"] as! String? ?? nil
         self.tag = value["tag"] as! String
         buildOption(optionsParam: value["options"] as! Array<String>)
     }
@@ -44,12 +46,12 @@ class AccessControlParam{
     
 }
 
-@available(iOS 11.3, *)
-class AppPasswordAccessControlParam : AccessControlParam{
-    let password: String
-    
-    init(value: Dictionary<String, Any>, password: String) {
-        self.password = password
-        super.init(value: value)
-    }
-}
+//@available(iOS 11.3, *)
+//class AppPasswordAccessControlParam : AccessControlParam{
+//    let password: String
+//
+//    init(value: Dictionary<String, Any>, password: String) {
+//        self.password = password
+//        super.init(value: value)
+//    }
+//}
