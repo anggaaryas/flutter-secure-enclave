@@ -17,10 +17,5 @@ class AccessControlFactory{
     
     func build() -> AccessControlParam{
         return AccessControlParam(value: value)
-//        if (value["options"] as! Array<String>).contains("applicationPassword") {
-//            return AppPasswordAccessControlParam(value: value, password: value["password"] as! String)
-//        } else {
-//            return AccessControlParam(value: value)
-//        }
     }
 }

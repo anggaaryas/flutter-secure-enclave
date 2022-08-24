@@ -4,7 +4,7 @@ import 'src/models/access_control_model.dart';
 import 'src/models/result_model.dart';
 
 abstract class SecureEnclaveBase {
-  Future<ResultModel<bool>> createKey({
+  Future<ResultModel<bool>> generateKeyPair({
     required AccessControlModel accessControl,
   });
 

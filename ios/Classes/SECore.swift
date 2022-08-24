@@ -12,7 +12,7 @@ import LocalAuthentication
 @available(iOS 11.3, *)
 protocol SECoreProtocol {
     // create and store private key to secure enclave
-    func createKey(accessControlParam: AccessControlParam) throws -> SecKey
+    func generateKeyPair(accessControlParam: AccessControlParam) throws -> SecKey
     
     // remove key from secure enclave
     func removeKey(tag: String) throws -> Bool
@@ -37,7 +37,7 @@ protocol SECoreProtocol {
 @available(iOS 11.3, *)
 class SECore : SECoreProtocol {
     
-    func createKey(accessControlParam: AccessControlParam) throws -> SecKey  {
+    func generateKeyPair(accessControlParam: AccessControlParam) throws -> SecKey  {
         // options
         let secAccessControlCreateFlags: SecAccessControlCreateFlags = accessControlParam.option
         let secAttrApplicationTag: Data? = accessControlParam.tag.data(using: .utf8)
@@ -68,7 +68,7 @@ class SECore : SECoreProtocol {
                         kSecPrivateKeyAttrs as String       : [
                             kSecAttrIsPermanent as String       : true,
                             kSecAttrApplicationTag as String    : secAttrApplicationTag,
-                            kSecAttrAccessControl as String     : secAttrAccessControl
+                            kSecAttrAccessControl as String     : secAttrAccessControl!
                         ]
                 ]
             } else {
@@ -79,15 +79,15 @@ class SECore : SECoreProtocol {
                         kSecPrivateKeyAttrs as String : [
                             kSecAttrIsPermanent as String       : true,
                             kSecAttrApplicationTag as String    : secAttrApplicationTag,
-                            kSecAttrAccessControl as String     : secAttrAccessControl
+                            kSecAttrAccessControl as String     : secAttrAccessControl!
                         ]
                 ]
             }
             
             // cek kalau pakai app password, tambahkan password nya
-            if accessControlParam is AppPasswordAccessControlParam {
+            if accessControlParam.password != "" {
                 let context = LAContext()
-                context.setCredential((accessControlParam as! AppPasswordAccessControlParam).password.data(using: .utf8), type: .applicationPassword)
+                context.setCredential(accessControlParam.password?.data(using: .utf8), type: .applicationPassword)
 
                 parameterTemp[kSecUseAuthenticationContext as String] = context
             }
@@ -98,13 +98,13 @@ class SECore : SECoreProtocol {
             var secKeyCreateRandomKeyError: Unmanaged<CFError>?
             
             guard let secKey = SecKeyCreateRandomKey(parameter, &secKeyCreateRandomKeyError)
+                    
             else {
                 throw secKeyCreateRandomKeyError!.takeRetainedValue() as Error
             }
             
             print(secKey)
             return secKey
-            
         } else {
             // tag error
             throw CustomError.runtimeError("Invalid TAG") as Error
@@ -245,7 +245,7 @@ class SECore : SECoreProtocol {
         if let cipherTextData = cipherTextData {
             return FlutterStandardTypedData(bytes: cipherTextData)
         } else {
-            throw CustomError.runtimeError("Harusnya bisa encrypt")
+            throw CustomError.runtimeError("Cannot encrypt data")
         }
         
         
@@ -286,4 +286,21 @@ class SECore : SECoreProtocol {
         }
     }
     
+//    func verify(signature: Data, digest: Data, publicKey: SecKeyCopyPublicKey) throws -> Bool {
+//
+//            var digestBytes = [UInt8](repeating: 0, count: digest.count)
+//            digest.copyBytes(to: &digestBytes, count: digest.count)
+//
+//            var signatureBytes = [UInt8](repeating: 0, count: signature.count)
+//            signature.copyBytes(to: &signatureBytes, count: signature.count)
+//
+//            let status = SecKeyRawVerify(publicKey.underlying, .PKCS1, digestBytes, digestBytes.count, signatureBytes, signatureBytes.count)
+//
+//            guard status == errSecSuccess else {
+//
+//                throw SecureEnclaveHelperError(message: "Could not create signature", osStatus: status)
+//            }
+//
+//            return true
+//        }
 }

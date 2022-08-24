@@ -14,7 +14,8 @@ class AccessControlParam{
     var option: SecAccessControlCreateFlags = []
     
     init(value: Dictionary<String, Any>){
-        self.password = value["password"] as! String? ?? nil
+        print(value)
+        self.password = value["password"] as? String
         self.tag = value["tag"] as! String
         buildOption(optionsParam: value["options"] as! Array<String>)
     }

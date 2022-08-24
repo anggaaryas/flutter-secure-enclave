@@ -66,8 +66,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
 
                       if (status == false) {
                         /// create key on keychain
-                        await _secureEnclavePlugin.createKey(
-                          accessControl: AppPasswordAccessControl(
+                        await _secureEnclavePlugin.generateKeyPair(
+                          accessControl: AccessControlModel(
                             password: appPassword.text,
                             options: [
                               AccessControlOption.applicationPassword,
@@ -93,6 +93,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                       Navigator.pop(context);
                       setState(() {});
                     } catch (e) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(e.toString())));
                       log(e.toString());
                     }
                   }
@@ -156,6 +158,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                       Navigator.pop(context);
                       setState(() {});
                     } catch (e) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(e.toString())));
                       log(e.toString());
                     }
                   }
@@ -240,8 +244,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
 
                     if (status == false) {
                       /// create key on keychain
-                      await _secureEnclavePlugin.createKey(
-                        accessControl: AccessControl(
+                      await _secureEnclavePlugin.generateKeyPair(
+                        accessControl: AccessControlModel(
                           options: [
                             AccessControlOption.userPresence,
                             AccessControlOption.privateKeyUsage,
@@ -263,6 +267,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                         hex.encode(cipherUint8List).toString();
                     setState(() {});
                   } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
                     log(e.toString());
                   }
                 }
@@ -333,6 +339,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                     plainTextBiometry.text = plain;
                     setState(() {});
                   } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
                     log(e.toString());
                   }
                 }

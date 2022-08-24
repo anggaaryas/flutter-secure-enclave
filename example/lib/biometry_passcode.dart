@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:secure_enclave/secure_enclave.dart';
 import 'package:convert/convert.dart';
 
 class BiometryPasscode extends StatefulWidget {
@@ -80,8 +81,8 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
 
                     if (status == false) {
                       /// create key on keychain
-                      await _secureEnclavePlugin.createKey(
-                        accessControl: AccessControl(
+                      await _secureEnclavePlugin.generateKeyPair(
+                        accessControl: AccessControlModel(
                           options: [
                             AccessControlOption.userPresence,
                             AccessControlOption.privateKeyUsage,
@@ -102,6 +103,8 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
                     cipherText.text = hex.encode(cipherUint8List).toString();
                     setState(() {});
                   } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
                     log(e.toString());
                   }
                 }
@@ -146,6 +149,8 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
                     plainText2.text = plain;
                     setState(() {});
                   } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
                     log(e.toString());
                   }
                 }

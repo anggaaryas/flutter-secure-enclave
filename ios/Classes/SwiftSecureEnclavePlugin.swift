@@ -145,14 +145,14 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
     
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
       switch call.method{
-      case "createKey":
+      case "generateKeyPair":
           do{
               let param = call.arguments as? Dictionary<String, Any>
               let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
               
               print(param!["accessControl"] ?? "--" )
               
-              try seCore.createKey(accessControlParam: accessControlParam)
+              try seCore.generateKeyPair(accessControlParam: accessControlParam)
               result(resultSuccess(data:""))
           } catch {
               print("Error info: \(error)")

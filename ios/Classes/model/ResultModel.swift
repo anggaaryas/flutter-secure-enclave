@@ -7,11 +7,11 @@
 
 import Foundation
 
-class MethodResult : BaseModel{
-    let error: ErrorHandling?
+class ResultModel : BaseModel{
+    let error: ErrorModel?
     let data: Any?
     
-    init(error: ErrorHandling?, data: Any?){
+    init(error: ErrorModel?, data: Any?){
         self.error = error
         self.data = data
     }
@@ -26,11 +26,11 @@ class MethodResult : BaseModel{
 
 
 func resultSuccess(data: Any?) -> Dictionary<String, Any?> {
-    let result = MethodResult(error: nil, data: data);
+    let result = ResultModel(error: nil, data: data);
     return result.build()
 }
 
 func resultError(error: Error) -> Dictionary<String, Any?> {
-    let result = MethodResult(error: ErrorHandling(error: error), data: nil);
+    let result = ResultModel(error: ErrorModel(error: error), data: nil);
     return result.build()
 }
