@@ -122,144 +122,186 @@ import UIKit
 public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
     let seCore = SECore()
     
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "secure_enclave", binaryMessenger: registrar.messenger())
-    let instance = SwiftSecureEnclavePlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-//    // create and store private key to secure enclave
-//    func createKey(accessControlParam: AccessControlParam) throws -> SecKey
-//
-//    // remove key from secure enclave
-//    func removeKey(tag: String) throws -> Bool
-//
-//    // get SecKey key from secure enclave
-//    func getSecKey(tag: String, password: String?) throws -> SecKey?
-//
-//    // encryption
-//    func encrypt(message: String, tag: String, password: String?) throws -> FlutterStandardTypedData?
-//
-//    // decryption
-//    func decrypt(message: String, tag: String, password: String?)  throws -> String?
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "secure_enclave", binaryMessenger: registrar.messenger())
+        let instance = SwiftSecureEnclavePlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+    }
+    //    // create and store private key to secure enclave
+    //    func createKey(accessControlParam: AccessControlParam) throws -> SecKey
+    //
+    //    // remove key from secure enclave
+    //    func removeKey(tag: String) throws -> Bool
+    //
+    //    // get SecKey key from secure enclave
+    //    func getSecKey(tag: String, password: String?) throws -> SecKey?
+    //
+    //    // encryption
+    //    func encrypt(message: String, tag: String, password: String?) throws -> FlutterStandardTypedData?
+    //
+    //    // decryption
+    //    func decrypt(message: String, tag: String, password: String?)  throws -> String?
     
     
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-      switch call.method{
-      case "generateKeyPair":
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
-              
-              print(param!["accessControl"] ?? "--" )
-              
-              try seCore.generateKeyPair(accessControlParam: accessControlParam)
-              result(resultSuccess(data:""))
-          } catch {
-              print("Error info: \(error)")
-              result(resultError(error:error))
-          }
-          
-      case "removeKey":
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let tag = param!["tag"] as! String
-              
-              print(tag)
-              
-              let isSuccess = try seCore.removeKey(tag: tag)
-              print(isSuccess)
-              result(resultSuccess(data:isSuccess))
-          } catch {
-              print("Error info: \(error)")
-              result(resultError(error:error))
-          }
-          
-      case "getStatusSecKey":
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let tag = param!["tag"] as! String
-              var password : String? = nil
-              if let pwd = param!["password"] as? String {
-                password = pwd
-              }
-                            
-              let key = try seCore.getStatusSecKey(tag: tag, password: password)
-              result(resultSuccess(data:key!))
-          } catch {
-              print("Error info: \(error)")
-              result(resultSuccess(data:false))
-          }
-          
-      case "getPublicKey":
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let tag = param!["tag"] as! String
-              var password : String? = nil
-              if let pwd = param!["password"] as? String {
-                password = pwd
-              }
-                            
-              let key = try seCore.getPublicKey(tag: tag, password: password)
-              result(resultSuccess(data:key!))
-          } catch {
-              print("Error info: \(error)")
-              result(resultError(error:error))
-          }
-          
-      case "encrypt" :
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let message = param!["message"] as! String
-              let tag = param!["tag"] as! String
-              var password : String? = nil
-              if let pwd = param!["password"] as? String {
-                password = pwd
-              }
-              
-              let encrypted = try seCore.encrypt(message: message, tag: tag, password: password)
-              result(resultSuccess(data:encrypted))
-          } catch {
-              print("Error info: \(error)")
-              result(resultError(error:error))
-          }
-
-      case "decrypt" :
-          do{
-              let param = call.arguments as? Dictionary<String, Any>
-              let message = param!["message"] as! FlutterStandardTypedData
-              let tag = param!["tag"] as! String
-              var password : String? = nil
-              if let pwd = param!["password"] as? String {
-                  password = pwd
-              }
-              print("ini password" + String((password ?? "")));
-              
-              let decrypted = try seCore.decrypt(message: message.data, tag: tag, password: password)
-              result(resultSuccess(data:decrypted))
-          } catch {
-              print("Error info: \(error)")
-              result(resultError(error:error))
-          }
-          
-//      case "getPublicKeyString":
-//          do{
-//              let param = call.arguments as? Dictionary<String, Any>
-//              let tag = param!["tag"] as! String
-//              let key = try core.getPublicKeyString(tag: tag)
-//              result(resultSuccess(data:key))
-//          } catch {
-//              print("Error info: \(error)")
-//              result(resultError(error:error))
-//          }
-//
-//
-//      case "cobaError":
-////          core.authenticateTapped()
-//          result(MethodResult(error: ErrorHandling(code: 100, desc: "Ini hanya percobaan error"), data: nil).build())
-//
-      default:
-          return
-      }
-   
-  }
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method{
+        case "generateKeyPair":
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
+                
+                print(param!["accessControl"] ?? "--" )
+                
+                _ = try seCore.generateKeyPair(accessControlParam: accessControlParam)
+                result(resultSuccess(data:""))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "removeKey":
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let tag = param!["tag"] as! String
+                
+                print(tag)
+                
+                let isSuccess = try seCore.removeKey(tag: tag)
+                print(isSuccess)
+                result(resultSuccess(data:isSuccess))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "getStatusSecKey":
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let tag = param!["tag"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                
+                let key = try seCore.getStatusSecKey(tag: tag, password: password)
+                result(resultSuccess(data:key!))
+            } catch {
+                print("Error info: \(error)")
+                result(resultSuccess(data:false))
+            }
+            
+        case "getPublicKey":
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let tag = param!["tag"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                
+                let key = try seCore.getPublicKey(tag: tag, password: password)
+                result(resultSuccess(data:key!))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "encrypt" :
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let message = param!["message"] as! String
+                let tag = param!["tag"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                
+                let encrypted = try seCore.encrypt(message: message, tag: tag, password: password)
+                result(resultSuccess(data:encrypted))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "decrypt" :
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let message = param!["message"] as! FlutterStandardTypedData
+                let tag = param!["tag"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                print("ini password" + String((password ?? "")));
+                
+                let decrypted = try seCore.decrypt(message: message.data, tag: tag, password: password)
+                result(resultSuccess(data:decrypted))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "sign" :
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let message = param!["message"] as! FlutterStandardTypedData
+                let tag = param!["tag"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                print("ini password" + String((password ?? "")));
+                
+                let signature = try seCore.sign(tag: tag, password: password, message: message.data
+                )
+                
+                result(resultSuccess(data:signature))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+        case "verify" :
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let tag = param!["tag"] as! String
+                let signatureText = param!["signature"] as! String
+                let plainText = param!["plainText"] as! String
+                var password : String? = nil
+                if let pwd = param!["password"] as? String {
+                    password = pwd
+                }
+                print("ini password" + String((password ?? "")));
+                
+                let signature = try seCore.verify(
+                    tag: tag, password: password, plainText: plainText, signature: signatureText
+                )
+                
+                result(resultSuccess(data:signature))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
+            //      case "getPublicKeyString":
+            //          do{
+            //              let param = call.arguments as? Dictionary<String, Any>
+            //              let tag = param!["tag"] as! String
+            //              let key = try core.getPublicKeyString(tag: tag)
+            //              result(resultSuccess(data:key))
+            //          } catch {
+            //              print("Error info: \(error)")
+            //              result(resultError(error:error))
+            //          }
+            //
+            //
+            //      case "cobaError":
+            ////          core.authenticateTapped()
+            //          result(MethodResult(error: ErrorHandling(code: 100, desc: "Ini hanya percobaan error"), data: nil).build())
+            //
+        default:
+            return
+        }
+        
+    }
 }

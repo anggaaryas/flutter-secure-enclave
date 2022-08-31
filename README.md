@@ -9,7 +9,7 @@ Encrypt:
 ```dart
 Uint8List encrypted = Uint8List(0);  
 
-void encrypt(String message, bool isRequiresBiometric) {
+void encrypt(String message, bool isRequiresBiometric) {s
   _secureEnclavePlugin
       .encrypt(
       message: message,

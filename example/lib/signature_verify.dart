@@ -1,22 +1,22 @@
 import 'dart:developer';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:secure_enclave/secure_enclave.dart';
-import 'package:convert/convert.dart';
 
-class AppPassword extends StatefulWidget {
-  const AppPassword({Key? key}) : super(key: key);
+class SignatureVerify extends StatefulWidget {
+  const SignatureVerify({Key? key}) : super(key: key);
 
   @override
-  State<AppPassword> createState() => _AppPasswordState();
+  State<SignatureVerify> createState() => _SignatureVerifyState();
 }
 
-class _AppPasswordState extends State<AppPassword> {
+class _SignatureVerifyState extends State<SignatureVerify> {
   TextEditingController tag = TextEditingController();
   TextEditingController plainText = TextEditingController();
   TextEditingController plainText2 = TextEditingController();
   TextEditingController appPassword = TextEditingController();
-  TextEditingController cipherText = TextEditingController();
+  TextEditingController signatureText = TextEditingController();
 
   final _secureEnclavePlugin = SecureEnclave();
 
@@ -24,13 +24,13 @@ class _AppPasswordState extends State<AppPassword> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App password'),
+        title: Text('Signature & Verify'),
         actions: [
           IconButton(
               onPressed: () {
                 _secureEnclavePlugin.removeKey(tag.text);
               },
-              icon: const Icon(Icons.delete))
+              icon: Icon(Icons.delete))
         ],
       ),
       body: Padding(
@@ -111,8 +111,7 @@ class _AppPasswordState extends State<AppPassword> {
 
                     if (status == false) {
                       /// create key on keychain
-                      ResultModel res =
-                          await _secureEnclavePlugin.generateKeyPair(
+                      await _secureEnclavePlugin.generateKeyPair(
                         accessControl: AccessControlModel(
                           password: appPassword.text,
                           options: [
@@ -124,31 +123,18 @@ class _AppPasswordState extends State<AppPassword> {
                           tag: tag.text,
                         ),
                       );
-
-                      if (res.error != null) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(res.error!.desc.toString())));
-                      }
                     }
 
-                    /// encrypt with app password
-                    ResultModel cipherUint8List =
-                        (await _secureEnclavePlugin.encrypt(
-                      message: plainText.text,
-                      tag: tag.text,
-                      password: appPassword.text,
-                    ));
-                    if (cipherUint8List.value != null) {
-                      cipherText.text =
-                          hex.encode(cipherUint8List.value).toString();
-                      setState(() {});
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content:
-                              Text(cipherUint8List.error!.desc.toString())));
-                    }
+                    /// sign with app password
+                    String signature = (await _secureEnclavePlugin.sign(
+                          message: Uint8List.fromList(plainText.text.codeUnits),
+                          tag: tag.text,
+                          password: appPassword.text,
+                        ))
+                            .value ??
+                        '';
+                    signatureText.text = signature.toString();
+                    setState(() {});
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -156,7 +142,7 @@ class _AppPasswordState extends State<AppPassword> {
                   }
                 }
               },
-              child: const Text('Encrypt'),
+              child: const Text('Sign'),
             ),
             const SizedBox(
               height: 20,
@@ -164,12 +150,12 @@ class _AppPasswordState extends State<AppPassword> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Cipher Text (Hex)'),
+                const Text('Signature Text'),
                 const SizedBox(
                   height: 5,
                 ),
                 TextField(
-                  controller: cipherText,
+                  controller: signatureText,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue),
@@ -183,23 +169,19 @@ class _AppPasswordState extends State<AppPassword> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (cipherText.text.isNotEmpty) {
+                if (signatureText.text.isNotEmpty) {
                   try {
-                    /// decrypt with app password
-                    ResultModel plain = (await _secureEnclavePlugin.decrypt(
-                      message: Uint8List.fromList(hex.decode(cipherText.text)),
-                      tag: tag.text,
-                      password: appPassword.text,
-                    ));
-
-                    if (plain.value != null) {
-                      plainText2.text = plain.value;
-                      setState(() {});
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(plain.error!.desc.toString())));
-                    }
+                    /// verify with app password
+                    bool res = (await _secureEnclavePlugin.verify(
+                          plainText: plainText.text,
+                          signature: signatureText.text,
+                          tag: tag.text,
+                          password: appPassword.text,
+                        ))
+                            .value ??
+                        false;
+                    plainText2.text = res.toString();
+                    setState(() {});
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -207,7 +189,7 @@ class _AppPasswordState extends State<AppPassword> {
                   }
                 }
               },
-              child: const Text('Decrypt'),
+              child: const Text('Verify'),
             ),
             const SizedBox(
               height: 20,
@@ -215,12 +197,13 @@ class _AppPasswordState extends State<AppPassword> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Plain Text'),
+                const Text('Is Verify?'),
                 const SizedBox(
                   height: 5,
                 ),
                 TextField(
                   controller: plainText2,
+                  readOnly: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue),

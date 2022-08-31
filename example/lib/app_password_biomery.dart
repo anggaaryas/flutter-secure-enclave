@@ -66,7 +66,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
 
                       if (status == false) {
                         /// create key on keychain
-                        await _secureEnclavePlugin.generateKeyPair(
+                        ResultModel res =
+                            await _secureEnclavePlugin.generateKeyPair(
                           accessControl: AccessControlModel(
                             password: appPassword.text,
                             options: [
@@ -76,22 +77,34 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                             tag: '${tag.text}.AppPassword',
                           ),
                         );
+
+                        if (res.error != null) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(res.error!.desc.toString())));
+                        }
                       }
 
                       /// encrypt with app password
-                      Uint8List cipherUint8List =
+                      ResultModel cipherUint8List =
                           (await _secureEnclavePlugin.encrypt(
-                                message: plainText.text,
-                                tag: '${tag.text}.AppPassword',
-                                password: appPassword.text,
-                              ))
-                                  .value ??
-                              Uint8List.fromList([]);
-                      cipherTextAppPassword.text =
-                          hex.encode(cipherUint8List).toString();
-                      appPassword.clear();
-                      Navigator.pop(context);
-                      setState(() {});
+                        message: plainText.text,
+                        tag: '${tag.text}.AppPassword',
+                        password: appPassword.text,
+                      ));
+                      if (cipherUint8List.value != null) {
+                        cipherTextAppPassword.text =
+                            hex.encode(cipherUint8List.value).toString();
+                        appPassword.clear();
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        setState(() {});
+                      } else {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content:
+                                Text(cipherUint8List.error!.desc.toString())));
+                      }
                     } catch (e) {
                       ScaffoldMessenger.of(context)
                           .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -145,18 +158,24 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                   if (cipherTextAppPassword.text.isNotEmpty) {
                     try {
                       /// decrypt with app password
-                      String plain = (await _secureEnclavePlugin.decrypt(
-                            message: Uint8List.fromList(
-                                hex.decode(cipherTextAppPassword.text)),
-                            tag: '${tag.text}.AppPassword',
-                            password: appPassword.text,
-                          ))
-                              .value ??
-                          '';
-                      plainTextAppPassword.text = plain;
-                      appPassword.clear();
-                      Navigator.pop(context);
-                      setState(() {});
+                      ResultModel cipherText =
+                          (await _secureEnclavePlugin.decrypt(
+                        message: Uint8List.fromList(
+                            hex.decode(cipherTextAppPassword.text)),
+                        tag: '${tag.text}.AppPassword',
+                        password: appPassword.text,
+                      ));
+                      if (cipherText.value != null) {
+                        plainTextAppPassword.text = cipherText.value;
+                        appPassword.clear();
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        setState(() {});
+                      } else {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(cipherText.error!.desc.toString())));
+                      }
                     } catch (e) {
                       ScaffoldMessenger.of(context)
                           .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -181,6 +200,14 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('App password'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                _secureEnclavePlugin.removeKey('${tag.text}.AppPassword');
+                _secureEnclavePlugin.removeKey('${tag.text}.Biometry');
+              },
+              icon: const Icon(Icons.delete))
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -244,7 +271,8 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
 
                     if (status == false) {
                       /// create key on keychain
-                      await _secureEnclavePlugin.generateKeyPair(
+                      ResultModel res =
+                          await _secureEnclavePlugin.generateKeyPair(
                         accessControl: AccessControlModel(
                           options: [
                             AccessControlOption.userPresence,
@@ -253,19 +281,30 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                           tag: '${tag.text}.Biometry',
                         ),
                       );
+
+                      if (res.error != null) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(res.error!.desc.toString())));
+                      }
                     }
 
                     /// encrypt with app password
-                    Uint8List cipherUint8List =
+                    ResultModel cipherUint8List =
                         (await _secureEnclavePlugin.encrypt(
-                              message: plainText.text,
-                              tag: '${tag.text}.Biometry',
-                            ))
-                                .value ??
-                            Uint8List.fromList([]);
-                    cipherTextBiometry.text =
-                        hex.encode(cipherUint8List).toString();
-                    setState(() {});
+                      message: plainText.text,
+                      tag: '${tag.text}.Biometry',
+                    ));
+                    if (cipherUint8List.value != null) {
+                      cipherTextBiometry.text =
+                          hex.encode(cipherUint8List.value).toString();
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content:
+                              Text(cipherUint8List.error!.desc.toString())));
+                    }
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -329,15 +368,19 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                 if (cipherTextBiometry.text.isNotEmpty) {
                   try {
                     /// decrypt with app password
-                    String plain = (await _secureEnclavePlugin.decrypt(
-                          message: Uint8List.fromList(
-                              hex.decode(cipherTextBiometry.text)),
-                          tag: '${tag.text}.Biometry',
-                        ))
-                            .value ??
-                        '';
-                    plainTextBiometry.text = plain;
-                    setState(() {});
+                    ResultModel plain = (await _secureEnclavePlugin.decrypt(
+                      message: Uint8List.fromList(
+                          hex.decode(cipherTextBiometry.text)),
+                      tag: '${tag.text}.Biometry',
+                    ));
+                    if (plain.value != null) {
+                      plainTextBiometry.text = plain.value;
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(plain.error!.desc.toString())));
+                    }
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));

@@ -31,4 +31,17 @@ abstract class SecureEnclaveBase {
     required String tag,
     String? password,
   });
+
+  Future<ResultModel<String?>> sign({
+    required Uint8List message,
+    required String tag,
+    String? password,
+  });
+
+  Future<ResultModel<bool?>> verify({
+    required String plainText,
+    required String signature,
+    required String tag,
+    String? password,
+  });
 }

@@ -125,4 +125,50 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
       },
     );
   }
+
+  @override
+  Future<ResultModel<String?>> sign(
+      {required Uint8List message,
+      required String tag,
+      String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'sign',
+      {
+        "message": message,
+        "tag": tag,
+        "password": password ?? '',
+      },
+    );
+
+    return ResultModel.fromMap(
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as String?;
+      },
+    );
+  }
+
+  @override
+  Future<ResultModel<bool?>> verify(
+      {required String plainText,
+      required String signature,
+      required String tag,
+      String? password}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'verify',
+      {
+        "plainText": plainText,
+        "signature": signature,
+        "tag": tag,
+        "password": password ?? '',
+      },
+    );
+
+    return ResultModel.fromMap(
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as bool?;
+      },
+    );
+  }
 }

@@ -24,6 +24,13 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Biometry / Passcode'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                _secureEnclavePlugin.removeKey(tag.text);
+              },
+              icon: const Icon(Icons.delete))
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -81,7 +88,8 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
 
                     if (status == false) {
                       /// create key on keychain
-                      await _secureEnclavePlugin.generateKeyPair(
+                      ResultModel res =
+                          await _secureEnclavePlugin.generateKeyPair(
                         accessControl: AccessControlModel(
                           options: [
                             AccessControlOption.userPresence,
@@ -90,18 +98,30 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
                           tag: tag.text,
                         ),
                       );
+
+                      if (res.error != null) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(res.error!.desc.toString())));
+                      }
                     }
 
                     /// encrypt with app password
-                    Uint8List cipherUint8List =
+                    ResultModel cipherUint8List =
                         (await _secureEnclavePlugin.encrypt(
-                              message: plainText.text,
-                              tag: tag.text,
-                            ))
-                                .value ??
-                            Uint8List.fromList([]);
-                    cipherText.text = hex.encode(cipherUint8List).toString();
-                    setState(() {});
+                      message: plainText.text,
+                      tag: tag.text,
+                    ));
+                    if (cipherUint8List.value != null) {
+                      cipherText.text =
+                          hex.encode(cipherUint8List.value).toString();
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content:
+                              Text(cipherUint8List.error!.desc.toString())));
+                    }
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -139,15 +159,18 @@ class _BiometryPasscodeState extends State<BiometryPasscode> {
                 if (cipherText.text.isNotEmpty) {
                   try {
                     /// decrypt with app password
-                    String plain = (await _secureEnclavePlugin.decrypt(
-                          message:
-                              Uint8List.fromList(hex.decode(cipherText.text)),
-                          tag: tag.text,
-                        ))
-                            .value ??
-                        '';
-                    plainText2.text = plain;
-                    setState(() {});
+                    ResultModel plain = (await _secureEnclavePlugin.decrypt(
+                      message: Uint8List.fromList(hex.decode(cipherText.text)),
+                      tag: tag.text,
+                    ));
+                    if (plain.value != null) {
+                      plainText2.text = plain.value;
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(plain.error!.desc.toString())));
+                    }
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));

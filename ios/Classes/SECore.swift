@@ -16,7 +16,7 @@ protocol SECoreProtocol {
     
     // remove key from secure enclave
     func removeKey(tag: String) throws -> Bool
-     
+    
     // get SecKey key from secure enclave (private method)
     func getSecKey(tag: String, password: String?) throws -> SecKey?
     
@@ -30,7 +30,13 @@ protocol SECoreProtocol {
     func encrypt(message: String, tag: String, password: String?) throws -> FlutterStandardTypedData?
     
     // decryption
-    func decrypt(message: Data, tag: String, password: String?)  throws -> String?
+    func decrypt(message: Data, tag: String, password: String?) throws -> String?
+    
+    // sign
+    func sign(tag: String, password: String?, message: Data) throws -> String?
+    
+    // verify
+    func verify(tag: String, password: String?, plainText: String, signature: String) throws -> Bool
 }
 
 
@@ -44,14 +50,14 @@ class SECore : SECoreProtocol {
         var accessError: Unmanaged<CFError>?
         print(secAccessControlCreateFlags)
         let secAttrAccessControl =
-            SecAccessControlCreateWithFlags(
-                kCFAllocatorDefault,
-                kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-                // dynamis dari flutter
-                secAccessControlCreateFlags,
-                &accessError
-            )
-                
+        SecAccessControlCreateWithFlags(
+            kCFAllocatorDefault,
+            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            // dynamis dari flutter
+            secAccessControlCreateFlags,
+            &accessError
+        )
+        
         let parameter : CFDictionary
         var parameterTemp: Dictionary<String, Any>
         
@@ -63,24 +69,24 @@ class SECore : SECoreProtocol {
             if TARGET_OS_SIMULATOR != 0 {
                 // target is current running in the simulator
                 parameterTemp = [
-                        kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-                        kSecAttrKeySizeInBits as String     : 256,
-                        kSecPrivateKeyAttrs as String       : [
-                            kSecAttrIsPermanent as String       : true,
-                            kSecAttrApplicationTag as String    : secAttrApplicationTag,
-                            kSecAttrAccessControl as String     : secAttrAccessControl!
-                        ]
+                    kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+                    kSecAttrKeySizeInBits as String     : 256,
+                    kSecPrivateKeyAttrs as String       : [
+                        kSecAttrIsPermanent as String       : true,
+                        kSecAttrApplicationTag as String    : secAttrApplicationTag,
+                        kSecAttrAccessControl as String     : secAttrAccessControl!
+                    ]
                 ]
             } else {
                 parameterTemp = [
-                        kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-                        kSecAttrKeySizeInBits as String     : 256,
-                        kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
-                        kSecPrivateKeyAttrs as String : [
-                            kSecAttrIsPermanent as String       : true,
-                            kSecAttrApplicationTag as String    : secAttrApplicationTag,
-                            kSecAttrAccessControl as String     : secAttrAccessControl!
-                        ]
+                    kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
+                    kSecAttrKeySizeInBits as String     : 256,
+                    kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
+                    kSecPrivateKeyAttrs as String : [
+                        kSecAttrIsPermanent as String       : true,
+                        kSecAttrApplicationTag as String    : secAttrApplicationTag,
+                        kSecAttrAccessControl as String     : secAttrAccessControl!
+                    ]
                 ]
             }
             
@@ -88,7 +94,7 @@ class SECore : SECoreProtocol {
             if accessControlParam.password != "" {
                 let context = LAContext()
                 context.setCredential(accessControlParam.password?.data(using: .utf8), type: .applicationPassword)
-
+                
                 parameterTemp[kSecUseAuthenticationContext as String] = context
             }
             
@@ -117,9 +123,9 @@ class SECore : SECoreProtocol {
             kSecClass as String                 : kSecClassKey,
             kSecAttrApplicationTag as String    : secAttrApplicationTag
         ]
-
+        
         let status = SecItemDelete(query as CFDictionary)
-    
+        
         guard status == errSecSuccess else {
             if status == errSecNotAvailable || status == errSecItemNotFound {
                 return false
@@ -152,10 +158,10 @@ class SECore : SECoreProtocol {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         guard status == errSecSuccess else {
-             throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+            throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
         }
         
- 
+        
         if let item = item {
             return (item as! SecKey)
         } else {
@@ -184,10 +190,10 @@ class SECore : SECoreProtocol {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
         guard status == errSecSuccess else {
-             throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
+            throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
         }
         
- 
+        
         if item != nil {
             return true
         } else {
@@ -198,20 +204,20 @@ class SECore : SECoreProtocol {
     func getPublicKey(tag: String, password: String?) throws -> String? {
         let secKey : SecKey
         let publicKey : SecKey
-         
-         do{
-             secKey = try getSecKey(tag: tag, password: password)!
-             publicKey = SecKeyCopyPublicKey(secKey)!
-         } catch{
-             throw error
-         }
-         
-         var error: Unmanaged<CFError>?
-         if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
-             return keyData.base64EncodedString()
-         } else {
-             return nil
-         }
+        
+        do{
+            secKey = try getSecKey(tag: tag, password: password)!
+            publicKey = SecKeyCopyPublicKey(secKey)!
+        } catch{
+            throw error
+        }
+        
+        var error: Unmanaged<CFError>?
+        if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
+            return keyData.base64EncodedString()
+        } else {
+            return nil
+        }
     }
     
     func encrypt(message: String, tag: String, password: String?) throws -> FlutterStandardTypedData?  {
@@ -251,7 +257,7 @@ class SECore : SECoreProtocol {
         
     }
     
-    func decrypt(message: Data, tag: String, password: String?)  throws -> String?  {
+    func decrypt(message: Data, tag: String, password: String?) throws -> String?  {
         let secKey : SecKey
         
         do{
@@ -277,7 +283,7 @@ class SECore : SECoreProtocol {
         if let error = error {
             throw error.takeUnretainedValue() as Error
         }
-
+        
         if let plainTextData = plainTextData {
             let plainText = String(decoding: plainTextData, as: UTF8.self)
             return plainText
@@ -286,21 +292,72 @@ class SECore : SECoreProtocol {
         }
     }
     
-//    func verify(signature: Data, digest: Data, publicKey: SecKeyCopyPublicKey) throws -> Bool {
-//
-//            var digestBytes = [UInt8](repeating: 0, count: digest.count)
-//            digest.copyBytes(to: &digestBytes, count: digest.count)
-//
-//            var signatureBytes = [UInt8](repeating: 0, count: signature.count)
-//            signature.copyBytes(to: &signatureBytes, count: signature.count)
-//
-//            let status = SecKeyRawVerify(publicKey.underlying, .PKCS1, digestBytes, digestBytes.count, signatureBytes, signatureBytes.count)
-//
-//            guard status == errSecSuccess else {
-//
-//                throw SecureEnclaveHelperError(message: "Could not create signature", osStatus: status)
-//            }
-//
-//            return true
-//        }
+    func sign(tag: String, password: String?, message: Data) throws -> String?{
+        let secKey : SecKey
+        var publicKey : SecKey
+        
+        do{
+            secKey = try getSecKey(tag: tag, password: password)!
+            publicKey = SecKeyCopyPublicKey(secKey)!
+        } catch{
+            throw error
+        }
+        
+        guard let signData = SecKeyCreateSignature(
+            secKey,
+            SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256,
+            message as CFData, nil) else {
+            print("Signing Error")
+            return nil
+        } //2
+        
+        let signedData = signData as Data
+        let signedString = signedData.base64EncodedString(options: [])
+        print("Signed String", signedString) //3
+        print("publicKey", publicKey) //3
+        return signedString
+    }
+    
+    
+    func verify(tag: String, password: String?, plainText: String, signature: String) throws -> Bool {
+        let externalKeyB64String : String
+        
+        guard Data(base64Encoded: signature) != nil else {
+            print("The signature isn't a base64 string!")
+            return false
+        }
+        
+        do{
+            externalKeyB64String = try getPublicKey(tag: tag, password: password)!
+        } catch{
+            throw error
+        }
+        
+        //convert b64 key back to usable key
+        let newPublicKeyData = Data(base64Encoded: externalKeyB64String, options: [])
+        let newPublicParams: [String: Any] = [
+            kSecAttrKeyType as String: kSecAttrKeyTypeEC,
+            kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
+            kSecAttrKeySizeInBits as String: 256
+        ]
+        guard let newPublicKey = SecKeyCreateWithData(newPublicKeyData! as CFData, newPublicParams as CFDictionary, nil) else {
+            print("ECC verify failed to create pub key")
+            return false
+        }
+        print("ecc verify pub key", newPublicKey)
+        
+        guard let messageData = plainText.data(using: String.Encoding.utf8) else {
+            print("ECC bad message to verify")
+            return false
+        }
+        
+        guard let signatureData = Data(base64Encoded: signature, options: []) else {
+            print("ECC bad signature to verify")
+            return false
+        }
+        
+        let verify = SecKeyVerifySignature(newPublicKey, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256, messageData as CFData, signatureData as CFData, nil)
+        return verify
+    }
+    
 }

@@ -45,6 +45,5 @@ class AccessControlModel {
   factory AccessControlModel.fromJson(Map<String, dynamic> json) =>
       _$AccessControlModelFromJson(json);
 
-  @override
   Map<String, dynamic> toJson() => _$AccessControlModelToJson(this);
 }
