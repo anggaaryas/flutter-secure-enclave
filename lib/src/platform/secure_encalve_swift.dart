@@ -11,6 +11,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
   @visibleForTesting
   final methodChannel = const MethodChannel('secure_enclave');
 
+  /// Generetes a new private/public key pair
   @override
   Future<ResultModel<bool>> generateKeyPair(
       {required AccessControlModel accessControl}) async {
@@ -29,6 +30,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// remove key pair
   @override
   Future<ResultModel<bool>> removeKey(String tag) async {
     final result = await methodChannel.invokeMethod<dynamic>(
@@ -46,6 +48,9 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// get public key representation, this method will return Base64 encode
+  /// you can share this public key to others device for sending encrypted data
+  /// to your device
   @override
   Future<ResultModel<String?>> getPublicKey(
       {required String tag, String? password}) async {
@@ -65,6 +70,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// encryption with secure enclave key pair
   @override
   Future<ResultModel<Uint8List?>> encrypt(
       {required String message, required String tag, String? password}) async {
@@ -85,6 +91,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// encryption with external public key
   @override
   Future<ResultModel<Uint8List?>> encryptWithPublicKey(
       {required String message, required String publicKey}) async {
@@ -104,6 +111,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// decryption with secure enclave key pair
   @override
   Future<ResultModel<String?>> decrypt(
       {required Uint8List message,
@@ -126,6 +134,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// check status is tag available or not
   @override
   Future<ResultModel<bool?>> getStatusSecKey(
       {required String tag, String? password}) async {
@@ -145,6 +154,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// generate signature from data
   @override
   Future<ResultModel<String?>> sign(
       {required Uint8List message,
@@ -167,6 +177,7 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
     );
   }
 
+  /// verify signature
   @override
   Future<ResultModel<bool?>> verify(
       {required String plainText,

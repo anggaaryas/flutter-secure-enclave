@@ -1,6 +1,6 @@
 name: secure_enclave
-description: Apple Secure Enclave implementaton for Flutter
-version: 0.0.2+rev1
+description: secure_enclave is implementation Apple Secure Enclave for Flutter
+version: 0.1.0
 homepage: https://github.com/anggaaryas/flutter-secure-enclave
 
 environment:
@@ -20,6 +20,7 @@ dev_dependencies:
   build_runner: ^2.1.11
   json_serializable: ^6.2.0
   convert: ^3.0.2
+  # dartdoc: ^6.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
