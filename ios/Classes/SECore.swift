@@ -29,6 +29,9 @@ protocol SECoreProtocol {
     // encryption
     func encrypt(message: String, tag: String, password: String?) throws -> FlutterStandardTypedData?
     
+    // encryption with base64 Public key
+    func encryptWithPublicKey(message: String, publicKey: String) throws -> FlutterStandardTypedData?
+    
     // decryption
     func decrypt(message: Data, tag: String, password: String?) throws -> String?
     
@@ -253,8 +256,42 @@ class SECore : SECoreProtocol {
         } else {
             throw CustomError.runtimeError("Cannot encrypt data")
         }
+    }
+    
+    func encryptWithPublicKey(message: String, publicKey: String) throws -> FlutterStandardTypedData?  {
+        let newPublicKeyData = Data(base64Encoded: publicKey, options: [])
+        let newPublicParams: [String: Any] = [
+            kSecAttrKeyType as String: kSecAttrKeyTypeEC,
+            kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
+            kSecAttrKeySizeInBits as String: 256
+        ]
+        guard let newPublicKey = SecKeyCreateWithData(newPublicKeyData! as CFData, newPublicParams as CFDictionary, nil) else {
+            print("ECC verify failed to create pub key")
+            throw CustomError.runtimeError("Cannot encrypt data")
+        }
         
+        let algorithm: SecKeyAlgorithm = .eciesEncryptionCofactorVariableIVX963SHA256AESGCM
+        guard SecKeyIsAlgorithmSupported(newPublicKey, .encrypt, algorithm) else {
+            throw CustomError.runtimeError("Algorithm not suppoort")
+        }
         
+        var error: Unmanaged<CFError>?
+        let clearTextData = message.data(using: .utf8)!
+        let cipherTextData = SecKeyCreateEncryptedData(
+            newPublicKey,
+            algorithm,
+            clearTextData as CFData,
+            &error) as Data?
+        
+        if let error = error {
+            throw error.takeRetainedValue() as Error
+        }
+        
+        if let cipherTextData = cipherTextData {
+            return FlutterStandardTypedData(bytes: cipherTextData)
+        } else {
+            throw CustomError.runtimeError("Cannot encrypt data")
+        }
     }
     
     func decrypt(message: Data, tag: String, password: String?) throws -> String?  {

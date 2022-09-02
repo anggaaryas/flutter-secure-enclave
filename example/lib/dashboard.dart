@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:secure_enclave_example/app_password.dart';
 import 'package:secure_enclave_example/app_password_biomery.dart';
 import 'package:secure_enclave_example/biometry_passcode.dart';
+import 'package:secure_enclave_example/encrypt_with_publickey.dart';
 import 'package:secure_enclave_example/signature_verify.dart';
 
 class Dashboard extends StatefulWidget {
@@ -80,6 +81,28 @@ class _DashboardState extends State<Dashboard> {
                     height: 100,
                     child: Center(
                       child: Text('App password / Biometry'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(5),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EncryptWithPublicKey(),
+                    ),
+                  );
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 100,
+                    child: Center(
+                      child: Text('Encrypt With Public Key'),
                     ),
                   ),
                 ),

@@ -223,6 +223,19 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
                 result(resultError(error:error))
             }
             
+        case "encryptWithPublicKey" :
+            do{
+                let param = call.arguments as? Dictionary<String, Any>
+                let message = param!["message"] as! String
+                let publicKey = param!["publicKey"] as! String
+              
+                let encrypted = try seCore.encryptWithPublicKey(message: message, publicKey: publicKey)
+                result(resultSuccess(data:encrypted))
+            } catch {
+                print("Error info: \(error)")
+                result(resultError(error:error))
+            }
+            
         case "decrypt" :
             do{
                 let param = call.arguments as? Dictionary<String, Any>

@@ -86,6 +86,25 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
   }
 
   @override
+  Future<ResultModel<Uint8List?>> encryptWithPublicKey(
+      {required String message, required String publicKey}) async {
+    final result = await methodChannel.invokeMethod<dynamic>(
+      'encryptWithPublicKey',
+      {
+        "message": message,
+        "publicKey": publicKey,
+      },
+    );
+
+    return ResultModel.fromMap(
+      map: Map<String, dynamic>.from(result),
+      decoder: (rawData) {
+        return rawData as Uint8List?;
+      },
+    );
+  }
+
+  @override
   Future<ResultModel<String?>> decrypt(
       {required Uint8List message,
       required String tag,

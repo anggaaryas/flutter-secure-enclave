@@ -26,6 +26,11 @@ abstract class SecureEnclaveBase {
     String? password,
   });
 
+  Future<ResultModel<Uint8List?>> encryptWithPublicKey({
+    required String message,
+    required String publicKey,
+  });
+
   Future<ResultModel<String?>> decrypt({
     required Uint8List message,
     required String tag,

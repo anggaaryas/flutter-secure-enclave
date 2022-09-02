@@ -3,20 +3,22 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:secure_enclave/secure_enclave.dart';
+import 'package:convert/convert.dart';
 
-class SignatureVerify extends StatefulWidget {
-  const SignatureVerify({Key? key}) : super(key: key);
+class EncryptWithPublicKey extends StatefulWidget {
+  const EncryptWithPublicKey({Key? key}) : super(key: key);
 
   @override
-  State<SignatureVerify> createState() => _SignatureVerifyState();
+  State<EncryptWithPublicKey> createState() => _EncryptWithPublicKeyState();
 }
 
-class _SignatureVerifyState extends State<SignatureVerify> {
+class _EncryptWithPublicKeyState extends State<EncryptWithPublicKey> {
   TextEditingController tag = TextEditingController();
+  TextEditingController publicKeyText = TextEditingController();
   TextEditingController plainText = TextEditingController();
   TextEditingController plainText2 = TextEditingController();
   TextEditingController appPassword = TextEditingController();
-  TextEditingController signatureText = TextEditingController();
+  TextEditingController cipherText = TextEditingController();
 
   final _secureEnclavePlugin = SecureEnclave();
 
@@ -24,7 +26,7 @@ class _SignatureVerifyState extends State<SignatureVerify> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signature & Verify'),
+        title: const Text('Encrypt With Public Key'),
         actions: [
           IconButton(
               onPressed: () {
@@ -60,26 +62,6 @@ class _SignatureVerifyState extends State<SignatureVerify> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Plain Text'),
-                const SizedBox(
-                  height: 5,
-                ),
-                TextField(
-                  controller: plainText,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
                 const Text('Password'),
                 const SizedBox(
                   height: 5,
@@ -97,65 +79,15 @@ class _SignatureVerifyState extends State<SignatureVerify> {
             const SizedBox(
               height: 20,
             ),
-            ElevatedButton(
-              onPressed: () async {
-                if (tag.text.isNotEmpty &&
-                    plainText.text.isNotEmpty &&
-                    appPassword.text.isNotEmpty) {
-                  try {
-                    /// check if tag already on keychain
-                    final bool status = (await _secureEnclavePlugin
-                                .getStatusSecKey(tag: tag.text))
-                            .value ??
-                        false;
-
-                    if (status == false) {
-                      /// create key on keychain
-                      await _secureEnclavePlugin.generateKeyPair(
-                        accessControl: AccessControlModel(
-                          password: appPassword.text,
-                          options: [
-                            AccessControlOption.applicationPassword,
-                            // AccessControlOption.or,
-                            // AccessControlOption.devicePasscode,
-                            AccessControlOption.privateKeyUsage,
-                          ],
-                          tag: tag.text,
-                        ),
-                      );
-                    }
-
-                    /// sign with app password
-                    String signature = (await _secureEnclavePlugin.sign(
-                          message: Uint8List.fromList(plainText.text.codeUnits),
-                          tag: tag.text,
-                          password: appPassword.text,
-                        ))
-                            .value ??
-                        '';
-                    signatureText.text = signature.toString();
-                    setState(() {});
-                  } catch (e) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(e.toString())));
-                    log(e.toString());
-                  }
-                }
-              },
-              child: const Text('Sign'),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Signature Text'),
+                const Text('Public Key'),
                 const SizedBox(
                   height: 5,
                 ),
                 TextField(
-                  controller: signatureText,
+                  controller: publicKeyText,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue),
@@ -169,19 +101,39 @@ class _SignatureVerifyState extends State<SignatureVerify> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (signatureText.text.isNotEmpty) {
+                if (tag.text.isNotEmpty && appPassword.text.isNotEmpty) {
                   try {
-                    /// verify with app password
-                    bool res = (await _secureEnclavePlugin.verify(
-                          plainText: plainText.text,
-                          signature: signatureText.text,
-                          tag: tag.text,
-                          password: appPassword.text,
-                        ))
+                    /// check if tag already on keychain
+                    final bool status = (await _secureEnclavePlugin
+                                .getStatusSecKey(tag: tag.text))
                             .value ??
                         false;
-                    plainText2.text = res.toString();
-                    setState(() {});
+
+                    if (status == false) {
+                      /// create key on keychain
+                      ResultModel res =
+                          await _secureEnclavePlugin.generateKeyPair(
+                        accessControl: AccessControlModel(
+                          password: appPassword.text,
+                          options: [
+                            AccessControlOption.applicationPassword,
+                            AccessControlOption.privateKeyUsage,
+                          ],
+                          tag: tag.text,
+                        ),
+                      );
+
+                      if (res.error != null) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(res.error!.desc.toString())));
+                      }
+                      publicKeyText.text = (await _secureEnclavePlugin
+                                  .getPublicKey(tag: tag.text))
+                              .value ??
+                          '';
+                      setState(() {});
+                    }
                   } catch (e) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -189,7 +141,61 @@ class _SignatureVerifyState extends State<SignatureVerify> {
                   }
                 }
               },
-              child: const Text('Verify'),
+              child: const Text('Generate key pair & Get Public Key'),
+            ),
+            const Divider(
+              thickness: 2,
+              height: 100,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Plain Text'),
+                const SizedBox(
+                  height: 5,
+                ),
+                TextField(
+                  controller: plainText,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (plainText.text.isNotEmpty &&
+                    publicKeyText.text.isNotEmpty) {
+                  try {
+                    /// encrypt with app password
+                    ResultModel cipherUint8List =
+                        (await _secureEnclavePlugin.encryptWithPublicKey(
+                      message: plainText.text,
+                      publicKey: publicKeyText.text,
+                    ));
+                    if (cipherUint8List.value != null) {
+                      cipherText.text =
+                          hex.encode(cipherUint8List.value).toString();
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content:
+                              Text(cipherUint8List.error!.desc.toString())));
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
+                    log(e.toString());
+                  }
+                }
+              },
+              child: const Text('Encrypt'),
             ),
             const SizedBox(
               height: 20,
@@ -197,13 +203,63 @@ class _SignatureVerifyState extends State<SignatureVerify> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Is Verify?'),
+                const Text('Cipher Text (Hex)'),
+                const SizedBox(
+                  height: 5,
+                ),
+                TextField(
+                  controller: cipherText,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (cipherText.text.isNotEmpty) {
+                  try {
+                    /// decrypt with app password
+                    ResultModel plain = (await _secureEnclavePlugin.decrypt(
+                      message: Uint8List.fromList(hex.decode(cipherText.text)),
+                      tag: tag.text,
+                      password: appPassword.text,
+                    ));
+
+                    if (plain.value != null) {
+                      plainText2.text = plain.value;
+                      setState(() {});
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(plain.error!.desc.toString())));
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
+                    log(e.toString());
+                  }
+                }
+              },
+              child: const Text('Decrypt'),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Plain Text'),
                 const SizedBox(
                   height: 5,
                 ),
                 TextField(
                   controller: plainText2,
-                  readOnly: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue),
