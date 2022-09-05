@@ -85,7 +85,7 @@ class SECore : SECoreProtocol {
                     kSecAttrKeySizeInBits as String     : 256,
                     kSecAttrTokenID as String           : kSecAttrTokenIDSecureEnclave,
                     kSecPrivateKeyAttrs as String : [
-                        kSecAttrIsPermanent as String       : true,
+                        kSecAttrIsPermanent as String       : true, 
                         kSecAttrApplicationTag as String    : secAttrApplicationTag,
                         kSecAttrAccessControl as String     : secAttrAccessControl!
                     ]

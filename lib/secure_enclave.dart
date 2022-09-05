@@ -42,11 +42,6 @@ class SecureEnclave implements SecureEnclaveBase {
   }
 
   @override
-  Future<ResultModel<bool?>> getStatusSecKey({required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.getStatusSecKey(tag: tag);
-  }
-
-  @override
   Future<ResultModel<bool>> removeKey(String tag) {
     return SecureEnclavePlatform.instance.removeKey(tag);
   }
@@ -59,6 +54,11 @@ class SecureEnclave implements SecureEnclaveBase {
   @override
   Future<ResultModel<bool?>> verify({required String plainText, required String signature, required String tag, String? password}) {
     return SecureEnclavePlatform.instance.verify(plainText: plainText, signature: signature, tag: tag);
+  }
+
+  @override
+  Future<ResultModel<bool?>> isKeyCreated({required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.isKeyCreated(tag: tag);
   }
 
 }
