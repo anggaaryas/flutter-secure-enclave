@@ -25,8 +25,6 @@ Apple Secure Enclave implementaton for Flutter
 
 ✅ Verify
 
-✅ Decrypt
-
 ✅ Flags ([reference](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags "reference"))
 - devicePasscode ✅
 - biometryAny ✅
