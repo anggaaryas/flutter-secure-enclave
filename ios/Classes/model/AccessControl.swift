@@ -9,10 +9,13 @@ import Foundation
 
 @available(iOS 11.3, *)
 class AccessControlParam{
+    let password: String?
     let tag : String
     var option: SecAccessControlCreateFlags = []
     
     init(value: Dictionary<String, Any>){
+        print(value)
+        self.password = value["password"] as? String
         self.tag = value["tag"] as! String
         buildOption(optionsParam: value["options"] as! Array<String>)
     }
@@ -32,24 +35,14 @@ class AccessControlParam{
                 option.insert(.privateKeyUsage)
             case "applicationPassword":
                 option.insert(.applicationPassword)
-            case "and":
-                option.insert(.and)
             case "or":
                 option.insert(.or)
+            case "and":
+                option.insert(.and)
             default:
                 break
             }
         }
     }
     
-}
-
-@available(iOS 11.3, *)
-class AppPasswordAccessControlParam : AccessControlParam{
-    let password: String
-    
-    init(value: Dictionary<String, Any>, password: String) {
-        self.password = password
-        super.init(value: value)
-    }
 }

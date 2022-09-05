@@ -1,21 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'access_control.dart';
+part of 'access_control_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-AccessControl _$AccessControlFromJson(Map<String, dynamic> json) =>
-    AccessControl(
+AccessControlModel _$AccessControlModelFromJson(Map<String, dynamic> json) =>
+    AccessControlModel(
+      password: json['password'] as String?,
+      tag: json['tag'] as String,
       options: (json['options'] as List<dynamic>)
           .map((e) => $enumDecode(_$AccessControlOptionEnumMap, e))
           .toList(),
-      tag: json['tag'] as String,
     );
 
-Map<String, dynamic> _$AccessControlToJson(AccessControl instance) =>
+Map<String, dynamic> _$AccessControlModelToJson(AccessControlModel instance) =>
     <String, dynamic>{
+      'password': instance.password,
       'options':
           instance.options.map((e) => _$AccessControlOptionEnumMap[e]).toList(),
       'tag': instance.tag,
@@ -29,25 +31,6 @@ const _$AccessControlOptionEnumMap = {
   AccessControlOption.watch: 'watch',
   AccessControlOption.privateKeyUsage: 'privateKeyUsage',
   AccessControlOption.applicationPassword: 'applicationPassword',
-  AccessControlOption.and: 'and',
   AccessControlOption.or: 'or',
+  AccessControlOption.and: 'and',
 };
-
-AppPasswordAccessControl _$AppPasswordAccessControlFromJson(
-        Map<String, dynamic> json) =>
-    AppPasswordAccessControl(
-      password: json['password'] as String,
-      tag: json['tag'] as String,
-      options: (json['options'] as List<dynamic>)
-          .map((e) => $enumDecode(_$AccessControlOptionEnumMap, e))
-          .toList(),
-    );
-
-Map<String, dynamic> _$AppPasswordAccessControlToJson(
-        AppPasswordAccessControl instance) =>
-    <String, dynamic>{
-      'options':
-          instance.options.map((e) => _$AccessControlOptionEnumMap[e]).toList(),
-      'tag': instance.tag,
-      'password': instance.password,
-    };

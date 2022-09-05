@@ -2,103 +2,180 @@
 
 Apple Secure Enclave implementaton for Flutter
 
-# How to Use
+# What is a Secure Enclave? 👮
+*The Secure Enclave is a dedicated secure subsystem integrated into Apple systems on chip (SoCs). The Secure Enclave is isolated from the main processor to provide an extra layer of security and is designed to keep sensitive user data secure even when the Application Processor kernel becomes compromised.* https://support.apple.com/en-ie/guide/security/sec59b0b31ff/web
 
-Create Key:
+[![](https://help.apple.com/assets/6026E7D7748ADA67B165542D/6026E7DA748ADA67B1655435/en_GB/388d8f7e1d4dd8c22d85c87ca9d01622.png)](https://help.apple.com/assets/6026E7D7748ADA67B165542D/6026E7DA748ADA67B1655435/en_GB/388d8f7e1d4dd8c22d85c87ca9d01622.png)
 
+# Feature Set ✨
+
+✅ Check tag status 
+
+✅ Generate Key Pair 
+
+✅ Get Public Key
+
+✅ Encrypt
+
+✅ Encrypt with Public Key
+
+✅ Decrypt
+
+✅ Sign
+
+✅ Verify
+
+✅ Flags ([reference](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags "reference"))
+- devicePasscode ✅
+- biometryAny ✅
+- biometryCurrentSet ✅
+- userPresence ✅
+- watch ✅
+- and ✅
+- or ✅
+- applicationPassword ✅
+- privateKeyUsage ✅
+
+🚧 Accessible ([reference](https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values "reference"))
+- kSecAttrAccessibleWhenUnlockedThisDeviceOnly ✅
+- kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly ⌛
+- kSecAttrAccessibleWhenUnlocked ⌛
+- kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly ⌛
+- kSecAttrAccessibleAfterFirstUnlock ⌛
+
+🚧 Algorithm ([reference](https://developer.apple.com/documentation/security/seckeyalgorithm "reference"))
+- eciesEncryptionCofactorVariableIVX963SHA256AESGCM ✅
+- ecdsaSignatureMessageX962SHA256 ✅
+- others ... ⌛
+
+# How to Use 🚀
+
+📈 **Check tag status :**
 ```dart
-  void createKey(AccessControl accessControl ){
-    _secureEnclavePlugin.createKey(
-        accessControl: accessControl
-    ).then((result){
-      if(result.error == null){
-        // success
-      } else {
-        showError(result);
-      }
-    });
-  }
+final _secureEnclavePlugin = SecureEnclave();
+final bool status = (await _secureEnclavePlugin.isKeyCreated(tag: 'kota')).value;
 ```
 
-Check Key:
-
+🔑 **Generate Key Pair :**
 ```dart
-  void checkKey(String tag){
-    _secureEnclavePlugin.checkKey(tag).then((value){
-      // value is true or false...
-    });
-  }
+final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.generateKeyPair(
+    accessControl: AccessControlModel(
+      password: 'jakarta123',
+      options: [
+        AccessControlOption.applicationPassword,
+        AccessControlOption.privateKeyUsage,
+      ],
+      tag: 'kota',
+    ),
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+ 
 ```
 
-Encrypt:
-
+📢 **Get Public Key :**
 ```dart
-Uint8List encrypted = Uint8List(0);
+final _secureEnclavePlugin = SecureEnclave();
 
-void encrypt(String message, String tag) {
-  _secureEnclavePlugin.encrypt(
-      message: message,
-      tag: tag).then((result) => setState(() {
-    if (result.error == null) {
-      encrypted = result.value ?? Uint8List(0);
-    } else {
-      showError(result);
-    }
-  }));
+ResultModel res = await _secureEnclavePlugin.getPublicKey(tag: 'kota');
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+ 
+```
+
+🔒 **Encrypt :**
+```dart
+final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.encrypt(
+    message: 'hello jakarta',
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value); // Uint8List
 }
 ```
 
-decrypt:
-
+🔐 **Encrypt with Public Key:**
 ```dart
-String decrypted = "";
+final _secureEnclavePlugin = SecureEnclave();
 
-void decrypt(Uint8List message, String tag, String? password) {
-  _secureEnclavePlugin.decrypt(
-      message: message,
-      tag: tag,
-      password: password).then((result) => setState(() {
-    if (result.error == null) {
-      decrypted = result.value ?? "";
-    } else {
-      showError(result);
-    }
-  }));
+ResultModel res = await _secureEnclavePlugin.encrypt(
+    message: 'hello jakarta',
+    publicKey: 'T57xZkDf2WPN8BT2Qlg2LiaBEVCRDw1Xq8aWQQfil' // base64 encode
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value); // Uint8List
 }
 ```
 
-get base64EncodedString public Key:
-
+🔓 **Decrypt :**
 ```dart
-  String publicKey = "";
+final _secureEnclavePlugin = SecureEnclave();
 
-void getPublicKey(String tag) {
-  _secureEnclavePlugin.getPublicKey(tag: tag).then((result) {
-    if (result.error == null) {
-      publicKey = result.value ?? "";
-    } else {
-      showError(result);
-    }
-  });
+ResultModel res = await _secureEnclavePlugin.decrypt(
+    message: Uint8List.fromList(hex.decode('iasjfoiaj2EL3EL')), // hex => Uint8List
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
 }
 ```
 
-Encrypt and use custom base64EncodedString public Key:
-
-be aware that the tag and the required public key is valid. Otherwise, it will throw error. For safety, use encrypt function without custom public key
-
+🔏 **Sign :**
 ```dart
-  Uint8List encryptedWithPublicKey = Uint8List(0);
+final _secureEnclavePlugin = SecureEnclave();
 
-void encryptWithPublicKey(String message) {
-  _secureEnclavePlugin.encryptWithPublicKey(
-      message: message,
-      publicKeyString: publicKey).then((result) => setState(() {
-    if (result.error == null) {
-      encryptedWithPublicKey = result.value ?? Uint8List(0);
-    } else {
-      showError(result);
-    }
-  }));
+ResultModel res = await _secureEnclavePlugin.sign(
+    message: Uint8List.fromList('hello jakarta'.codeUnits), // String => Uint8List
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
 }
 ```
+
+✅ **Verify :**
+```dart
+final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.verify(
+	plainText: 'hello jakarta',
+    signature: 'fDrPlGl48R8DPCGNTsAticYfx3RoWPKxEHQ2pHWrBDGk887UwWYGVTSSUj6LciietChBULEs ',
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+```
+
+

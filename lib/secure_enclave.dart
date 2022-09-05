@@ -1,68 +1,64 @@
+library secure_enclave;
 
 import 'dart:typed_data';
 
-export 'package:secure_enclave/src/model/access_control.dart';
+import 'package:secure_enclave/secure_enclave_base.dart';
+import 'package:secure_enclave/src/models/access_control_model.dart';
+import 'package:secure_enclave/src/models/result_model.dart';
 
+import 'src/platform/secure_encalve_swift.dart';
 
-import 'package:secure_enclave/src/model/access_control.dart';
-import 'package:secure_enclave/src/model/method_result.dart';
+export 'src/constants/access_control_option.dart';
+export 'src/models/access_control_model.dart';
+export 'src/models/result_model.dart';
+export 'src/models/error_model.dart';
 
-import 'src/secure_enclave_platform_interface.dart';
+class SecureEnclave implements SecureEnclaveBase {
 
-class SecureEnclave implements SecureEnclaveBehaviour{
-
-  static const defaultRequiredAuthForAccessControlOption = [AccessControlOption.userPresence, AccessControlOption.privateKeyUsage];
-
-  static const defaulAccessControlOption = [AccessControlOption.privateKeyUsage];
 
   @override
-  Future<MethodResult<String?>> decrypt({required Uint8List message, required  String tag, String? password}) {
-    return SecureEnclavePlatform.instance.decrypt(
-      message: message,
-      tag: tag,
-      password: password
-    );
+  Future<ResultModel<String?>> decrypt({required Uint8List message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.decrypt(message: message, tag: tag);
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encrypt({ required  String message, required String tag}) {
-    return SecureEnclavePlatform.instance.encrypt(
-      tag: tag,
-      message: message,
-    );
+  Future<ResultModel<Uint8List?>> encrypt({required String message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.encrypt(message: message, tag: tag);
   }
 
   @override
-  Future<MethodResult<Uint8List?>> encryptWithPublicKey({required  String message, String? publicKeyString}){
-    return SecureEnclavePlatform.instance.encryptWithPublicKey(
-        message: message,
-        publicKeyString: publicKeyString);
+  Future<ResultModel<Uint8List?>> encryptWithPublicKey({required String message, required String publicKey}) {
+    return SecureEnclavePlatform.instance.encryptWithPublicKey(message: message, publicKey: publicKey);
   }
 
   @override
-  Future<MethodResult<String?>> getPublicKey({ required String tag}) {
-    return SecureEnclavePlatform.instance.getPublicKey(
-      tag: tag
-    );
+  Future<ResultModel<bool>> generateKeyPair({required AccessControlModel accessControl}) {
+    return SecureEnclavePlatform.instance.generateKeyPair(accessControl: accessControl);
   }
 
   @override
-  Future<MethodResult<bool>> removeKey(String tag) {
+  Future<ResultModel<String?>> getPublicKey({required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.getPublicKey(tag: tag);
+  }
+
+  @override
+  Future<ResultModel<bool>> removeKey(String tag) {
     return SecureEnclavePlatform.instance.removeKey(tag);
   }
 
   @override
-  Future<MethodResult> cobaError() {
-    return SecureEnclavePlatform.instance.cobaError();
+  Future<ResultModel<String?>> sign({required Uint8List message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.sign(message: message, tag: tag);
   }
 
   @override
-  Future<MethodResult<bool>> createKey({required AccessControl accessControl}) {
-    return SecureEnclavePlatform.instance.createKey(accessControl: accessControl);
+  Future<ResultModel<bool?>> verify({required String plainText, required String signature, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.verify(plainText: plainText, signature: signature, tag: tag);
   }
 
   @override
-  Future<bool> checkKey(String tag) {
-    return SecureEnclavePlatform.instance.checkKey(tag);
+  Future<ResultModel<bool?>> isKeyCreated({required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.isKeyCreated(tag: tag);
   }
+
 }

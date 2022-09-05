@@ -8,7 +8,7 @@
 import Foundation
 
 
-class ErrorHandling : BaseModel{
+class ErrorModel : BaseModel{
     let code: Int
     let desc: String
     
