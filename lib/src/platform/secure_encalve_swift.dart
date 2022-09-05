@@ -136,10 +136,10 @@ class SecureEnclaveSwift extends SecureEnclaveBase {
 
   /// check status is tag available or not
   @override
-  Future<ResultModel<bool?>> getStatusSecKey(
+  Future<ResultModel<bool?>> isKeyCreated(
       {required String tag, String? password}) async {
     final result = await methodChannel.invokeMethod<dynamic>(
-      'getStatusSecKey',
+      'isKeyCreated',
       {
         "tag": tag,
         "password": password ?? '',

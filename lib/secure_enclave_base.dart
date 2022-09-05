@@ -15,7 +15,7 @@ abstract class SecureEnclaveBase {
     String? password,
   });
 
-  Future<ResultModel<bool?>> getStatusSecKey({
+  Future<ResultModel<bool?>> isKeyCreated({
     required String tag,
     String? password,
   });

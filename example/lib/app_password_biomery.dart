@@ -58,11 +58,10 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                       appPassword.text.isNotEmpty) {
                     try {
                       /// check if tag already on keychain
-                      final bool status =
-                          (await _secureEnclavePlugin.getStatusSecKey(
-                                      tag: '${tag.text}.AppPassword'))
-                                  .value ??
-                              false;
+                      final bool status = (await _secureEnclavePlugin
+                                  .isKeyCreated(tag: '${tag.text}.AppPassword'))
+                              .value ??
+                          false;
 
                       if (status == false) {
                         /// create key on keychain
@@ -265,7 +264,7 @@ class _AppPasswordBiometryState extends State<AppPasswordBiometry> {
                   try {
                     /// check if tag already on keychain
                     final bool status = (await _secureEnclavePlugin
-                                .getStatusSecKey(tag: '${tag.text}.Biometry'))
+                                .isKeyCreated(tag: '${tag.text}.Biometry'))
                             .value ??
                         false;
 

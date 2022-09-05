@@ -21,7 +21,7 @@ protocol SECoreProtocol {
     func getSecKey(tag: String, password: String?) throws -> SecKey?
     
     // get status SecKey key from secure enclave (private method)
-    func getStatusSecKey(tag: String, password: String?) throws -> Bool?
+    func isKeyCreated(tag: String, password: String?) throws -> Bool?
     
     // get publicKey key from secure enclave
     func getPublicKey(tag: String, password: String?) throws -> String?
@@ -51,7 +51,6 @@ class SECore : SECoreProtocol {
         let secAccessControlCreateFlags: SecAccessControlCreateFlags = accessControlParam.option
         let secAttrApplicationTag: Data? = accessControlParam.tag.data(using: .utf8)
         var accessError: Unmanaged<CFError>?
-        print(secAccessControlCreateFlags)
         let secAttrAccessControl =
         SecAccessControlCreateWithFlags(
             kCFAllocatorDefault,
@@ -94,7 +93,7 @@ class SECore : SECoreProtocol {
             }
             
             // cek kalau pakai app password, tambahkan password nya
-            if accessControlParam.password != "" {
+            if accessControlParam.option.contains(.applicationPassword) {
                 let context = LAContext()
                 context.setCredential(accessControlParam.password?.data(using: .utf8), type: .applicationPassword)
                 
@@ -112,7 +111,6 @@ class SECore : SECoreProtocol {
                 throw secKeyCreateRandomKeyError!.takeRetainedValue() as Error
             }
             
-            print(secKey)
             return secKey
         } else {
             // tag error
@@ -172,35 +170,12 @@ class SECore : SECoreProtocol {
         }
     }
     
-    func getStatusSecKey(tag: String, password: String?) throws -> Bool?  {
-        let secAttrApplicationTag = tag.data(using: .utf8)!
-        
-        var query: [String: Any] = [
-            kSecClass as String                 : kSecClassKey,
-            kSecAttrApplicationTag as String    : secAttrApplicationTag,
-            kSecAttrKeyType as String           : kSecAttrKeyTypeEC,
-            kSecMatchLimit as String            : kSecMatchLimitOne ,
-            kSecReturnRef as String             : true
-        ]
-        
-        if let password = password {
-            let context = LAContext()
-            context.setCredential(password.data(using: .utf8), type: .applicationPassword)
-            
-            query[kSecUseAuthenticationContext as String] = context
-        }
-        
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess else {
-            throw  NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: SecCopyErrorMessageString(status,nil) ?? "Undefined error"])
-        }
-        
-        
-        if item != nil {
-            return true
-        } else {
-            return false
+    func isKeyCreated(tag: String, password: String?) throws -> Bool?  {
+        do{
+            let result =  try getSecKey(tag: tag, password: password)
+            return result != nil ? true : false
+        } catch{
+            throw error
         }
     }
     
@@ -266,7 +241,6 @@ class SECore : SECoreProtocol {
             kSecAttrKeySizeInBits as String: 256
         ]
         guard let newPublicKey = SecKeyCreateWithData(newPublicKeyData! as CFData, newPublicParams as CFDictionary, nil) else {
-            print("ECC verify failed to create pub key")
             throw CustomError.runtimeError("Cannot encrypt data")
         }
         
@@ -331,11 +305,9 @@ class SECore : SECoreProtocol {
     
     func sign(tag: String, password: String?, message: Data) throws -> String?{
         let secKey : SecKey
-        var publicKey : SecKey
         
         do{
             secKey = try getSecKey(tag: tag, password: password)!
-            publicKey = SecKeyCopyPublicKey(secKey)!
         } catch{
             throw error
         }
@@ -344,14 +316,11 @@ class SECore : SECoreProtocol {
             secKey,
             SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256,
             message as CFData, nil) else {
-            print("Signing Error")
             return nil
         } //2
         
         let signedData = signData as Data
         let signedString = signedData.base64EncodedString(options: [])
-        print("Signed String", signedString) //3
-        print("publicKey", publicKey) //3
         return signedString
     }
     
@@ -360,7 +329,6 @@ class SECore : SECoreProtocol {
         let externalKeyB64String : String
         
         guard Data(base64Encoded: signature) != nil else {
-            print("The signature isn't a base64 string!")
             return false
         }
         
@@ -378,18 +346,14 @@ class SECore : SECoreProtocol {
             kSecAttrKeySizeInBits as String: 256
         ]
         guard let newPublicKey = SecKeyCreateWithData(newPublicKeyData! as CFData, newPublicParams as CFDictionary, nil) else {
-            print("ECC verify failed to create pub key")
             return false
         }
-        print("ecc verify pub key", newPublicKey)
         
         guard let messageData = plainText.data(using: String.Encoding.utf8) else {
-            print("ECC bad message to verify")
             return false
         }
         
         guard let signatureData = Data(base64Encoded: signature, options: []) else {
-            print("ECC bad signature to verify")
             return false
         }
         

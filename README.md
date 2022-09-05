@@ -55,7 +55,7 @@ Apple Secure Enclave implementaton for Flutter
 📈 **Check tag status :**
 ```dart
 final _secureEnclavePlugin = SecureEnclave();
-final bool status = (await _secureEnclavePlugin.getStatusSecKey(tag: 'kota')).value;
+final bool status = (await _secureEnclavePlugin.isKeyCreated(tag: 'kota')).value;
 ```
 
 🔑 **Generate Key Pair :**
