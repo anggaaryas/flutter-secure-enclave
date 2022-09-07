@@ -77,7 +77,6 @@ void main(){
           checkResult(
               result: result,
               onSuccess: (){
-                print('Tag Normal created...');
                 expect(result.value, true);
               });
         });
@@ -94,7 +93,6 @@ void main(){
           checkResult(
               result: result,
               onSuccess: (){
-                print('Tag Biometry created...');
                 expect(result.value, true);
               });
         });
@@ -111,7 +109,6 @@ void main(){
           checkResult(
               result: result,
               onSuccess: (){
-                print('Tag Password created...');
                 expect(result.value, true);
               });
         });
@@ -128,7 +125,6 @@ void main(){
           checkResult(
               result: result,
               onSuccess: (){
-                print('Tag Biometry Password created...');
                 expect(result.value, true);
               });
         });
@@ -317,7 +313,7 @@ void main(){
         await widgetTester.pumpAndSettle();
 
         SecureEnclave secureEnclave = SecureEnclave();
-        await secureEnclave.decrypt(message: encrypted!, tag: tagPassword).then((result) {
+        await secureEnclave.decrypt(message: encrypted!, tag: tagPassword, password: appPassword).then((result) {
           checkResult(result: result, onSuccess: (){
             expect(result.value == cleartext, true);
           });
@@ -336,6 +332,8 @@ void main(){
         await secureEnclave.decrypt(message: encrypted!, tag: tagPassword, password: '9900').then((result) {
           checkResult(result: result, onSuccess: (){
             throw('decrypt should fail...');
+          }, onFail: (){
+
           },);
         });
       });
@@ -391,6 +389,8 @@ void main(){
         await secureEnclave.decrypt(message: encrypted!, tag: tagPasswordBiometric, password: '9900').then((result) {
           checkResult(result: result, onSuccess: (){
             throw('decrypt should fail...');
+          }, onFail: (){
+
           },);
         });
       });
@@ -542,6 +542,8 @@ void main(){
         await secureEnclave.sign(message: Uint8List.fromList(clearText.codeUnits), tag: tagPassword, password: '9900').then((result){
           checkResult(result: result, onSuccess: (){
             throw('signing should fail...');
+          }, onFail: (){
+
           });
         });
       });
@@ -610,6 +612,8 @@ void main(){
         await secureEnclave.sign(message: Uint8List.fromList(clearText.codeUnits), tag: tagPasswordBiometric, password: '9900').then((result){
           checkResult(result: result, onSuccess: (){
             throw('signing should fail...');
+          }, onFail: (){
+
           });
         });
       });
@@ -650,6 +654,34 @@ void main(){
 
     });
 
+  });
+
+
+  group('show pop up ios password', () {
+
+    requireSetup(tagNormal, tagBiometric, tagPassword, tagPasswordBiometric, appPassword);
+
+    testWidgets('show popUp', (widgetTester) async{
+
+      blankApp('Test pop up Password (Please Input \'$appPassword\'');
+      await widgetTester.pumpAndSettle();
+
+      const clearText = 'LoremIpsum';
+      Uint8List? encrypted;
+
+      SecureEnclave secureEnclave = SecureEnclave();
+
+      await secureEnclave.encrypt(message: clearText, tag: tagPassword).then((result) {
+
+      });
+
+      await secureEnclave.decrypt(message: encrypted!, tag: tagPassword).then((result){
+
+      });
+
+      print('this test should show pop up from default ios password form');
+
+    });
   });
 
 
@@ -711,7 +743,7 @@ void blankApp(String title){
     home: Scaffold(
       backgroundColor: Colors.white,
       body:  Center(
-        child: Text(title, style: TextStyle(fontSize: 24),),
+        child: Text(title, style: const TextStyle(fontSize: 24),),
       ),
     ),
   ));
