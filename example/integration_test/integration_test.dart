@@ -14,127 +14,201 @@ void main(){
 
   const String appPassword = "1234";
 
-  group('reset key', () {
 
-    testWidgets('normal key', (widgetTester) async{
 
-      blankApp('Test delete normal key');
-      await widgetTester.pumpAndSettle();
+  group('create delete key', () {
+    group('reset key', () {
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagNormal).then((result){
+      testWidgets('normal key', (widgetTester) async{
+
+        blankApp('Test delete normal key');
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagNormal).then((result){
+
+        });
+      });
+
+      testWidgets('biometry key', (widgetTester) async{
+
+        blankApp('Test delete biometry key');
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagBiometric).then((result){
+
+        });
+      });
+
+      testWidgets('password key', (widgetTester) async{
+
+        blankApp('Test delete password key');
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagPassword).then((result){
+
+        });
+      });
+
+      testWidgets('biometry password key', (widgetTester) async{
+
+        blankApp('Test delete biometry password key');
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagPasswordBiometric).then((result){
+
+        });
+      });
+
+    });
+
+    group("Create all key", () {
+
+      testWidgets("create Normal Key", (widgetTester) async {
+
+        blankApp("Test create normal key");
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagNormal, options: [AccessControlOption.privateKeyUsage])).then((result){
+          checkResult(
+              result: result,
+              onSuccess: (){
+                print('Tag Normal created...');
+                expect(result.value, true);
+              });
+        });
+      });
+
+      testWidgets("create Biometry Key", (widgetTester) async {
+
+        blankApp("Test create biometry key");
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet])).then((result){
+          checkResult(
+              result: result,
+              onSuccess: (){
+                print('Tag Biometry created...');
+                expect(result.value, true);
+              });
+        });
+      });
+
+      testWidgets("create Password Key", (widgetTester) async {
+
+        blankApp("Test create password key");
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPassword, options: [AccessControlOption.privateKeyUsage, AccessControlOption.applicationPassword], password: appPassword)).then((result){
+          checkResult(
+              result: result,
+              onSuccess: (){
+                print('Tag Password created...');
+                expect(result.value, true);
+              });
+        });
+      });
+
+      testWidgets("create Biometry Password Key", (widgetTester) async {
+
+        blankApp("Test create biometry password key");
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPasswordBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet, AccessControlOption.applicationPassword], password: appPassword)).then((result){
+          checkResult(
+              result: result,
+              onSuccess: (){
+                print('Tag Biometry Password created...');
+                expect(result.value, true);
+              });
+        });
 
       });
     });
 
-    testWidgets('biometry key', (widgetTester) async{
+    group('delete key', () {
 
-      blankApp('Test delete biometry key');
-      await widgetTester.pumpAndSettle();
+      testWidgets('normal key', (widgetTester) async{
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagBiometric).then((result){
+        blankApp('Test delete normal key');
+        await widgetTester.pumpAndSettle();
 
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagNormal).then((result){
+          checkResult(result: result, onSuccess: (){
+            expect(result.value, true);
+          });
+        });
       });
-    });
 
-    testWidgets('password key', (widgetTester) async{
+      testWidgets('biometry key', (widgetTester) async{
 
-      blankApp('Test delete password key');
-      await widgetTester.pumpAndSettle();
+        blankApp('Test delete biometry key');
+        await widgetTester.pumpAndSettle();
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagPassword).then((result){
-
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagBiometric).then((result){
+          checkResult(result: result, onSuccess: (){
+            expect(result.value, true);
+          });
+        });
       });
-    });
 
-    testWidgets('biometry password key', (widgetTester) async{
+      testWidgets('password key', (widgetTester) async{
 
-      blankApp('Test delete biometry password key');
-      await widgetTester.pumpAndSettle();
+        blankApp('Test delete password key');
+        await widgetTester.pumpAndSettle();
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagPasswordBiometric).then((result){
-
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagPassword).then((result){
+          checkResult(result: result, onSuccess: (){
+            expect(result.value, true);
+          });
+        });
       });
-    });
 
-  });
+      testWidgets('biometry password key', (widgetTester) async{
 
+        blankApp('Test delete biometry password key');
+        await widgetTester.pumpAndSettle();
 
-  group("Create all key", () {
-
-    testWidgets("create Normal Key", (widgetTester) async {
-
-      blankApp("Test create normal key");
-      await widgetTester.pumpAndSettle();
-
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagNormal, options: [AccessControlOption.privateKeyUsage])).then((result){
-        checkResult(
-            result: result,
-            onSuccess: (){
-              print('Tag Normal created...');
-              expect(result.value, true);
-            });
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagPasswordBiometric).then((result){
+          checkResult(result: result, onSuccess: (){
+            expect(result.value, true);
+          });
+        });
       });
-    });
 
-    testWidgets("create Biometry Key", (widgetTester) async {
+      testWidgets('unknown key', (widgetTester) async{
 
-      blankApp("Test create biometry key");
-      await widgetTester.pumpAndSettle();
+        blankApp('Test delete unknown key');
+        await widgetTester.pumpAndSettle();
 
-      SecureEnclave secureEnclave = SecureEnclave();
-
-      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet])).then((result){
-        checkResult(
-            result: result,
-            onSuccess: (){
-              print('Tag Biometry created...');
-              expect(result.value, true);
-            });
-      });
-    });
-
-    testWidgets("create Password Key", (widgetTester) async {
-
-      blankApp("Test create password key");
-      await widgetTester.pumpAndSettle();
-
-      SecureEnclave secureEnclave = SecureEnclave();
-
-      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPassword, options: [AccessControlOption.privateKeyUsage, AccessControlOption.applicationPassword], password: appPassword)).then((result){
-        checkResult(
-            result: result,
-            onSuccess: (){
-              print('Tag Password created...');
-              expect(result.value, true);
-            });
-      });
-    });
-
-    testWidgets("create Biometry Password Key", (widgetTester) async {
-
-      blankApp("Test create biometry password key");
-      await widgetTester.pumpAndSettle();
-
-      SecureEnclave secureEnclave = SecureEnclave();
-
-      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPasswordBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet, AccessControlOption.applicationPassword], password: appPassword)).then((result){
-        checkResult(
-            result: result,
-            onSuccess: (){
-              print('Tag Biometry Password created...');
-              expect(result.value, true);
-            });
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey('adasdasdasdasdas').then((result){
+          checkResult(result: result, onSuccess: (){
+            expect(result.value, false);
+          });
+        });
       });
 
     });
   });
 
   group('encrypt - decrypt', () {
+
+    requireSetup(tagNormal, tagBiometric, tagPassword, tagPasswordBiometric, appPassword);
 
     group('Normal Encrypt Decrypt', () {
       const String cleartext = "Lorem Ipsum";
@@ -250,6 +324,22 @@ void main(){
         });
       });
 
+      testWidgets("decrypt wrong password", (widgetTester) async{
+        if(encrypted == null || encrypted!.isEmpty){
+          throw("Encrypted Text null or empty. abort...");
+        }
+
+        blankApp("Test wrong password decrypt...");
+        await widgetTester.pumpAndSettle();
+
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.decrypt(message: encrypted!, tag: tagPassword, password: '9900').then((result) {
+          checkResult(result: result, onSuccess: (){
+            throw('decrypt should fail...');
+          },);
+        });
+      });
+
     });
 
     group('Biometry Password Encrypt Decrypt', () {
@@ -294,7 +384,7 @@ void main(){
           throw("Encrypted Text null or empty. abort...");
         }
 
-        blankApp("Test biometry password decrypt...");
+        blankApp("Test biometry wrong password decrypt...");
         await widgetTester.pumpAndSettle();
 
         SecureEnclave secureEnclave = SecureEnclave();
@@ -310,6 +400,8 @@ void main(){
   });
 
   group("signing - verify", () {
+
+    requireSetup(tagNormal, tagBiometric, tagPassword, tagPasswordBiometric, appPassword);
 
     group('normal signing verify', () {
 
@@ -561,73 +653,44 @@ void main(){
   });
 
 
-  group('delete key', () {
 
-    testWidgets('normal key', (widgetTester) async{
 
-      blankApp('Test delete normal key');
-      await widgetTester.pumpAndSettle();
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagNormal).then((result){
-        checkResult(result: result, onSuccess: (){
-          expect(result.value, true);
-        });
-      });
-    });
+}
 
-    testWidgets('biometry key', (widgetTester) async{
+Future<void> requireSetup(String tagNormal, String tagBiometric, String tagPassword, String tagPasswordBiometric, String appPassword) async {
+  setUpAll(() async{
 
-      blankApp('Test delete biometry key');
-      await widgetTester.pumpAndSettle();
+        SecureEnclave secureEnclave = SecureEnclave();
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagBiometric).then((result){
-        checkResult(result: result, onSuccess: (){
-          expect(result.value, true);
-        });
-      });
-    });
+        await secureEnclave.removeKey(tagNormal);
 
-    testWidgets('password key', (widgetTester) async{
+        await secureEnclave.removeKey(tagBiometric);
 
-      blankApp('Test delete password key');
-      await widgetTester.pumpAndSettle();
+        await secureEnclave.removeKey(tagPassword);
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagPassword).then((result){
-        checkResult(result: result, onSuccess: (){
-          expect(result.value, true);
-        });
-      });
-    });
+        await secureEnclave.removeKey(tagPasswordBiometric);
 
-    testWidgets('biometry password key', (widgetTester) async{
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagNormal, options: [AccessControlOption.privateKeyUsage]));
 
-      blankApp('Test delete biometry password key');
-      await widgetTester.pumpAndSettle();
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet]));
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey(tagPasswordBiometric).then((result){
-        checkResult(result: result, onSuccess: (){
-          expect(result.value, true);
-        });
-      });
-    });
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPassword, options: [AccessControlOption.privateKeyUsage, AccessControlOption.applicationPassword], password: appPassword));
 
-    testWidgets('unknown key', (widgetTester) async{
+        await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPasswordBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet, AccessControlOption.applicationPassword], password: appPassword));
 
-      blankApp('Test delete unknown key');
-      await widgetTester.pumpAndSettle();
+  });
 
-      SecureEnclave secureEnclave = SecureEnclave();
-      await secureEnclave.removeKey('adasdasdasdasdas').then((result){
-        checkResult(result: result, onSuccess: (){
-          expect(result.value, false);
-        });
-      });
-    });
+  tearDownAll(() async{
 
+        SecureEnclave secureEnclave = SecureEnclave();
+        await secureEnclave.removeKey(tagNormal);
+
+        await secureEnclave.removeKey(tagBiometric);
+
+        await secureEnclave.removeKey(tagPassword);
+
+        await secureEnclave.removeKey(tagPasswordBiometric);
   });
 }
 
