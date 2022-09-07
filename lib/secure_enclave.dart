@@ -14,6 +14,7 @@ export 'src/models/result_model.dart';
 export 'src/models/error_model.dart';
 
 class SecureEnclave implements SecureEnclaveBase {
+  /// decryption with secure enclave key pair
   @override
   Future<ResultModel<String?>> decrypt(
       {required Uint8List message, required String tag, String? password}) {
@@ -24,6 +25,7 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// encryption with secure enclave key pair
   @override
   Future<ResultModel<Uint8List?>> encrypt(
       {required String message, required String tag, String? password}) {
@@ -34,6 +36,7 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// encryption with external public key
   @override
   Future<ResultModel<Uint8List?>> encryptWithPublicKey(
       {required String message, required String publicKey}) {
@@ -43,6 +46,7 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// Generetes a new private/public key pair
   @override
   Future<ResultModel<bool>> generateKeyPair(
       {required AccessControlModel accessControl}) {
@@ -50,6 +54,9 @@ class SecureEnclave implements SecureEnclaveBase {
         .generateKeyPair(accessControl: accessControl);
   }
 
+  /// get public key representation, this method will return Base64 encode
+  /// you can share this public key to others device for sending encrypted data
+  /// to your device
   @override
   Future<ResultModel<String?>> getPublicKey(
       {required String tag, String? password}) {
@@ -59,11 +66,13 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// remove key pair
   @override
   Future<ResultModel<bool>> removeKey(String tag) {
     return SecureEnclavePlatform.instance.removeKey(tag);
   }
 
+  /// generate signature from data
   @override
   Future<ResultModel<String?>> sign(
       {required Uint8List message, required String tag, String? password}) {
@@ -74,6 +83,7 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// verify signature
   @override
   Future<ResultModel<bool?>> verify(
       {required String plainText,
@@ -88,6 +98,7 @@ class SecureEnclave implements SecureEnclaveBase {
     );
   }
 
+  /// check status is tag available or not
   @override
   Future<ResultModel<bool?>> isKeyCreated(
       {required String tag, String? password}) {

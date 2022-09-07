@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="generator" content="made with love by dartdoc 6.0.1">
+  <meta name="description" content="secure_enclave API docs, for the Dart programming language.">
+  <title>secure_enclave - Dart API docs</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <link rel="stylesheet" href="static-assets/github.css?v1">
+  <link rel="stylesheet" href="static-assets/styles.css?v1">
+  <link rel="icon" href="static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="" data-using-base-href="false">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="https://github.com/anggaaryas/flutter-secure-enclave">secure_enclave package</a></li>
+  </ol>
+  <div class="self-name">secure_enclave</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+
+  <div id="dartdoc-main-content" class="main-content">
+      
+<section class="desc markdown">
+  <h1 id="secure_enclave">secure_enclave</h1>
+<p>Apple Secure Enclave implementaton for Flutter</p>
+<h1 id="what-is-a-secure-enclave-">What is a Secure Enclave? 👮</h1>
+<p><em>The Secure Enclave is a dedicated secure subsystem integrated into Apple systems on chip (SoCs). The Secure Enclave is isolated from the main processor to provide an extra layer of security and is designed to keep sensitive user data secure even when the Application Processor kernel becomes compromised.</em> <a href="https://support.apple.com/en-ie/guide/security/sec59b0b31ff/web">https://support.apple.com/en-ie/guide/security/sec59b0b31ff/web</a></p>
+<p><a href="https://help.apple.com/assets/6026E7D7748ADA67B165542D/6026E7DA748ADA67B1655435/en_GB/388d8f7e1d4dd8c22d85c87ca9d01622.png"><img src="https://help.apple.com/assets/6026E7D7748ADA67B165542D/6026E7DA748ADA67B1655435/en_GB/388d8f7e1d4dd8c22d85c87ca9d01622.png" alt=""></a></p>
+<h1 id="feature-set-">Feature Set ✨</h1>
+<p>✅ Check tag status</p>
+<p>✅ Generate Key Pair</p>
+<p>✅ Get Public Key</p>
+<p>✅ Encrypt</p>
+<p>✅ Encrypt with Public Key</p>
+<p>✅ Decrypt</p>
+<p>✅ Sign</p>
+<p>✅ Verify</p>
+<p>✅ Flags (<a href="https://developer.apple.com/documentation/security/secaccesscontrolcreateflags" title="reference">reference</a>)</p>
+<ul>
+<li>devicePasscode ✅</li>
+<li>biometryAny ✅</li>
+<li>biometryCurrentSet ✅</li>
+<li>userPresence ✅</li>
+<li>watch ✅</li>
+<li>and ✅</li>
+<li>or ✅</li>
+<li>applicationPassword ✅</li>
+<li>privateKeyUsage ✅</li>
+</ul>
+<p>🚧 Accessible (<a href="https://developer.apple.com/documentation/security/keychain_services/keychain_items/item_attribute_keys_and_values" title="reference">reference</a>)</p>
+<ul>
+<li>kSecAttrAccessibleWhenUnlockedThisDeviceOnly ✅</li>
+<li>kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly ⌛</li>
+<li>kSecAttrAccessibleWhenUnlocked ⌛</li>
+<li>kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly ⌛</li>
+<li>kSecAttrAccessibleAfterFirstUnlock ⌛</li>
+</ul>
+<p>🚧 Algorithm (<a href="https://developer.apple.com/documentation/security/seckeyalgorithm" title="reference">reference</a>)</p>
+<ul>
+<li>eciesEncryptionCofactorVariableIVX963SHA256AESGCM ✅</li>
+<li>ecdsaSignatureMessageX962SHA256 ✅</li>
+<li>others ... ⌛</li>
+</ul>
+<h1 id="how-to-use-">How to Use 🚀</h1>
+<p>📈 <strong>Check tag status :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+final bool status = (await _secureEnclavePlugin.isKeyCreated(tag: 'kota')).value;
+</code></pre>
+<p>🔑 <strong>Generate Key Pair :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.generateKeyPair(
+    accessControl: AccessControlModel(
+      password: 'jakarta123',
+      options: [
+        AccessControlOption.applicationPassword,
+        AccessControlOption.privateKeyUsage,
+      ],
+      tag: 'kota',
+    ),
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+ 
+</code></pre>
+<p>📢 <strong>Get Public Key :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.getPublicKey(tag: 'kota');
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+ 
+</code></pre>
+<p>🔒 <strong>Encrypt :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.encrypt(
+    message: 'hello jakarta',
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value); // Uint8List
+}
+</code></pre>
+<p>🔐 <strong>Encrypt with Public Key:</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.encrypt(
+    message: 'hello jakarta',
+    publicKey: 'T57xZkDf2WPN8BT2Qlg2LiaBEVCRDw1Xq8aWQQfil' // base64 encode
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value); // Uint8List
+}
+</code></pre>
+<p>🔓 <strong>Decrypt :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.decrypt(
+    message: Uint8List.fromList(hex.decode('iasjfoiaj2EL3EL')), // hex =&gt; Uint8List
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+</code></pre>
+<p>🔏 <strong>Sign :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.sign(
+    message: Uint8List.fromList('hello jakarta'.codeUnits), // String =&gt; Uint8List
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+</code></pre>
+<p>✅ <strong>Verify :</strong></p>
+<pre class="language-dart"><code class="language-dart">final _secureEnclavePlugin = SecureEnclave();
+
+ResultModel res = await _secureEnclavePlugin.verify(
+	plainText: 'hello jakarta',
+    signature: 'fDrPlGl48R8DPCGNTsAticYfx3RoWPKxEHQ2pHWrBDGk887UwWYGVTSSUj6LciietChBULEs ',
+    tag: 'kota',
+    password: 'jakarta123',
+);
+
+if (res.error != null) {
+	print(res.error!.desc.toString());
+} else {
+	print(res.value);
+}
+</code></pre>
+</section>
+
+
+      <section class="summary">
+          <h2>Libraries</h2>
+        <dl>
+          <dt id="secure_enclave">
+  <span class="name"><a href="secure_enclave/secure_enclave-library.html">secure_enclave</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="secure_enclave_base">
+  <span class="name"><a href="secure_enclave_base/secure_enclave_base-library.html">secure_enclave_base</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+        </dl>
+      </section>
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+  <li><a href="https://github.com/anggaaryas/flutter-secure-enclave">secure_enclave package</a></li>
+</ol>
+
+
+    <h5 class="hidden-xs"><span class="package-name">secure_enclave</span> <span class="package-kind">package</span></h5>
+    <ol>
+      <li class="section-title">Libraries</li>
+      <li><a href="secure_enclave/secure_enclave-library.html">secure_enclave</a></li>
+      <li><a href="secure_enclave_base/secure_enclave_base-library.html">secure_enclave_base</a></li>
+</ol>
+
+  </div>
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div>
+
+</main>
+
+<footer>
+  <span class="no-break">
+    secure_enclave
+      0.1.1
+  </span>
+
+  
+</footer>
+
+
+
+<script src="static-assets/highlight.pack.js?v1"></script>
+<script src="static-assets/docs.dart.js"></script>
+
+
+
+</body>
+
+</html>
+
