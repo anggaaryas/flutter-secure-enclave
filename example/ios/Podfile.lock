@@ -1,20 +1,26 @@
 PODS:
   - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
   - secure_enclave (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - secure_enclave (from `.symlinks/plugins/secure_enclave/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
   secure_enclave:
     :path: ".symlinks/plugins/secure_enclave/ios"
 
 SPEC CHECKSUMS:
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
   secure_enclave: 19492ea9711dba0d4a57a8f875228ebda5f36174
 
 PODFILE CHECKSUM: 324709033fdbc1fa744dac75dde748e9cf475d50
