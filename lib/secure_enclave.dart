@@ -14,31 +14,49 @@ export 'src/models/result_model.dart';
 export 'src/models/error_model.dart';
 
 class SecureEnclave implements SecureEnclaveBase {
-
-
   @override
-  Future<ResultModel<String?>> decrypt({required Uint8List message, required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.decrypt(message: message, tag: tag);
+  Future<ResultModel<String?>> decrypt(
+      {required Uint8List message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.decrypt(
+      message: message,
+      tag: tag,
+      password: password,
+    );
   }
 
   @override
-  Future<ResultModel<Uint8List?>> encrypt({required String message, required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.encrypt(message: message, tag: tag);
+  Future<ResultModel<Uint8List?>> encrypt(
+      {required String message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.encrypt(
+      message: message,
+      tag: tag,
+      password: password,
+    );
   }
 
   @override
-  Future<ResultModel<Uint8List?>> encryptWithPublicKey({required String message, required String publicKey}) {
-    return SecureEnclavePlatform.instance.encryptWithPublicKey(message: message, publicKey: publicKey);
+  Future<ResultModel<Uint8List?>> encryptWithPublicKey(
+      {required String message, required String publicKey}) {
+    return SecureEnclavePlatform.instance.encryptWithPublicKey(
+      message: message,
+      publicKey: publicKey,
+    );
   }
 
   @override
-  Future<ResultModel<bool>> generateKeyPair({required AccessControlModel accessControl}) {
-    return SecureEnclavePlatform.instance.generateKeyPair(accessControl: accessControl);
+  Future<ResultModel<bool>> generateKeyPair(
+      {required AccessControlModel accessControl}) {
+    return SecureEnclavePlatform.instance
+        .generateKeyPair(accessControl: accessControl);
   }
 
   @override
-  Future<ResultModel<String?>> getPublicKey({required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.getPublicKey(tag: tag);
+  Future<ResultModel<String?>> getPublicKey(
+      {required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.getPublicKey(
+      tag: tag,
+      password: password,
+    );
   }
 
   @override
@@ -47,18 +65,35 @@ class SecureEnclave implements SecureEnclaveBase {
   }
 
   @override
-  Future<ResultModel<String?>> sign({required Uint8List message, required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.sign(message: message, tag: tag);
+  Future<ResultModel<String?>> sign(
+      {required Uint8List message, required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.sign(
+      message: message,
+      tag: tag,
+      password: password,
+    );
   }
 
   @override
-  Future<ResultModel<bool?>> verify({required String plainText, required String signature, required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.verify(plainText: plainText, signature: signature, tag: tag);
+  Future<ResultModel<bool?>> verify(
+      {required String plainText,
+      required String signature,
+      required String tag,
+      String? password}) {
+    return SecureEnclavePlatform.instance.verify(
+      plainText: plainText,
+      signature: signature,
+      tag: tag,
+      password: password,
+    );
   }
 
   @override
-  Future<ResultModel<bool?>> isKeyCreated({required String tag, String? password}) {
-    return SecureEnclavePlatform.instance.isKeyCreated(tag: tag);
+  Future<ResultModel<bool?>> isKeyCreated(
+      {required String tag, String? password}) {
+    return SecureEnclavePlatform.instance.isKeyCreated(
+      tag: tag,
+      password: password,
+    );
   }
-
 }

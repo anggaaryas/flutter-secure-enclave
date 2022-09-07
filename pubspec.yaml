@@ -1,6 +1,6 @@
 name: secure_enclave
 description: secure_enclave is implementation Apple Secure Enclave for Flutter
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/anggaaryas/flutter-secure-enclave
 
 environment:

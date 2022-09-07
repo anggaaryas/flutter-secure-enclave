@@ -1,7 +1,12 @@
+## 0.1.1
+
+*07-09-2022*
+- bug fix
+
 ## 0.1.0
 
 *02-09-2022*
-- refactor pacakge
+- refactor package
 - add sign & verify
 - add more flags
 - add documentation
