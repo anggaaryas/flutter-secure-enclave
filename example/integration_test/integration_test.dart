@@ -672,14 +672,18 @@ void main(){
       SecureEnclave secureEnclave = SecureEnclave();
 
       await secureEnclave.encrypt(message: clearText, tag: tagPassword).then((result) {
-
+        checkResult(result: result, onSuccess: (){
+          encrypted = result.value;
+          expect(encrypted != null, true);
+          expect(encrypted!.isEmpty, false);
+        });
       });
 
       await secureEnclave.decrypt(message: encrypted!, tag: tagPassword).then((result){
 
       });
 
-      print('this test should show pop up from default ios password form');
+      print('this test should show ios password form pop up');
 
     });
   });
