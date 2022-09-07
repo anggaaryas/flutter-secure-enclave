@@ -20,7 +20,7 @@ public class SwiftSecureEnclavePlugin: NSObject, FlutterPlugin {
                 let accessControlParam = AccessControlFactory(value: param!["accessControl"] as! Dictionary<String, Any>).build()
                                 
                 _ = try seCore.generateKeyPair(accessControlParam: accessControlParam)
-                result(resultSuccess(data:""))
+                result(resultSuccess(data:true))
             } catch {
                 result(resultError(error:error))
             }

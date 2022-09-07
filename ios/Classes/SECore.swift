@@ -308,15 +308,19 @@ class SECore : SECoreProtocol {
         
         do{
             secKey = try getSecKey(tag: tag, password: password)!
-        } catch{
+        } catch {
             throw error
         }
-        
+
+        var error: Unmanaged<CFError>?
         guard let signData = SecKeyCreateSignature(
             secKey,
             SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256,
-            message as CFData, nil) else {
-            return nil
+            message as CFData, &error) else {
+            if let e = error {
+              throw e.takeUnretainedValue() as Error
+            }
+            throw CustomError.runtimeError("Can't sign data")
         } //2
         
         let signedData = signData as Data
