@@ -62,7 +62,8 @@ final _secureEnclavePlugin = SecureEnclave();
 
 ResultModel res = await _secureEnclavePlugin.generateKeyPair(
     accessControl: AccessControlModel(
-      password: 'jakarta123',
+      password: 'jakarta123', // Fill this password if you want custom pop up dialog of .applicationPassword.
+
       options: [
         AccessControlOption.applicationPassword,
         AccessControlOption.privateKeyUsage,
@@ -78,6 +79,7 @@ if (res.error != null) {
 }
  
 ```
+
 
 📢 **Get Public Key :**
 ```dart
