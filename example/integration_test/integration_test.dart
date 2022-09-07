@@ -90,7 +90,7 @@ void main(){
     const String cleartext = "Lorem Ipsum";
     Uint8List? encrypted;
 
-    testWidgets('normal encrypt', (widgetTester) async {
+    testWidgets('encrypt', (widgetTester) async {
 
       blankApp("Test normal encrypt...");
       await widgetTester.pumpAndSettle();
@@ -107,7 +107,7 @@ void main(){
     });
 
 
-    testWidgets("normal decrypt", (widgetTester) async{
+    testWidgets("decrypt", (widgetTester) async{
       if(encrypted == null || encrypted!.isEmpty){
         throw("Encrypted Text null or empty. abort...");
       }
@@ -117,6 +117,122 @@ void main(){
 
       SecureEnclave secureEnclave = SecureEnclave();
       await secureEnclave.decrypt(message: encrypted!, tag: tagNormal).then((result) {
+        checkResult(result: result, onSuccess: (){
+          expect(result.value == cleartext, true);
+        });
+      });
+    });
+
+  });
+
+  group('Biometry Encrypt Decrypt', () {
+    const String cleartext = "Lorem Ipsum";
+    Uint8List? encrypted;
+
+    testWidgets('encrypt', (widgetTester) async {
+
+      blankApp("Test biometry encrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.encrypt(message: cleartext, tag: tagBiometric).then((result){
+        checkResult(result: result, onSuccess: (){
+          encrypted = result.value;
+
+          expect(encrypted != null, true);
+          expect(encrypted!.isEmpty, false);
+        });
+      });
+    });
+
+    testWidgets("decrypt", (widgetTester) async{
+      if(encrypted == null || encrypted!.isEmpty){
+        throw("Encrypted Text null or empty. abort...");
+      }
+
+      blankApp("Test biometry decrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.decrypt(message: encrypted!, tag: tagBiometric).then((result) {
+        checkResult(result: result, onSuccess: (){
+          expect(result.value == cleartext, true);
+        });
+      });
+    });
+
+  });
+
+  group('Password Encrypt Decrypt', () {
+    const String cleartext = "Lorem Ipsum";
+    Uint8List? encrypted;
+
+    testWidgets('encrypt', (widgetTester) async {
+
+      blankApp("Test password encrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.encrypt(message: cleartext, tag: tagPassword).then((result){
+        checkResult(result: result, onSuccess: (){
+          encrypted = result.value;
+
+          expect(encrypted != null, true);
+          expect(encrypted!.isEmpty, false);
+        });
+      });
+    });
+
+
+    testWidgets("decrypt", (widgetTester) async{
+      if(encrypted == null || encrypted!.isEmpty){
+        throw("Encrypted Text null or empty. abort...");
+      }
+
+      blankApp("Test password decrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.decrypt(message: encrypted!, tag: tagPassword).then((result) {
+        checkResult(result: result, onSuccess: (){
+          expect(result.value == cleartext, true);
+        });
+      });
+    });
+
+  });
+
+  group('Biometry Password Encrypt Decrypt', () {
+    const String cleartext = "Lorem Ipsum";
+    Uint8List? encrypted;
+
+    testWidgets('encrypt', (widgetTester) async {
+
+      blankApp("Test biometry password encrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.encrypt(message: cleartext, tag: tagPasswordBiometric).then((result){
+        checkResult(result: result, onSuccess: (){
+          encrypted = result.value;
+
+          expect(encrypted != null, true);
+          expect(encrypted!.isEmpty, false);
+        });
+      });
+    });
+
+
+    testWidgets("decrypt", (widgetTester) async{
+      if(encrypted == null || encrypted!.isEmpty){
+        throw("Encrypted Text null or empty. abort...");
+      }
+
+      blankApp("Test biometry password decrypt...");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.decrypt(message: encrypted!, tag: tagPasswordBiometric).then((result) {
         checkResult(result: result, onSuccess: (){
           expect(result.value == cleartext, true);
         });
