@@ -94,10 +94,14 @@ class SECore : SECoreProtocol {
             
             // cek kalau pakai app password, tambahkan password nya
             if accessControlParam.option.contains(.applicationPassword) {
-                let context = LAContext()
-                context.setCredential(accessControlParam.password?.data(using: .utf8), type: .applicationPassword)
+               let context = LAContext()
+               var newPassword : Data?
+               if accessControlParam.password != "" {
+                   newPassword = accessControlParam.password?.data(using: .utf8)
+               }
+               context.setCredential(newPassword, type: .applicationPassword)
                 
-                parameterTemp[kSecUseAuthenticationContext as String] = context
+               parameterTemp[kSecUseAuthenticationContext as String] = context
             }
             
             // convert ke CFDictinery
@@ -151,8 +155,12 @@ class SECore : SECoreProtocol {
         
         if let password = password {
             let context = LAContext()
-            context.setCredential(password.data(using: .utf8), type: .applicationPassword)
-            
+            var newPassword : Data?
+            if password != "" {
+                newPassword = password.data(using: .utf8)
+            }
+            context.setCredential(newPassword, type: .applicationPassword)
+             
             query[kSecUseAuthenticationContext as String] = context
         }
         

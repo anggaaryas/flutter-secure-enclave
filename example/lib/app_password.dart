@@ -99,62 +99,61 @@ class _AppPasswordState extends State<AppPassword> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (tag.text.isNotEmpty &&
-                    plainText.text.isNotEmpty &&
-                    appPassword.text.isNotEmpty) {
-                  try {
-                    /// check if tag already on keychain
-                    final bool status =
-                        (await _secureEnclavePlugin.isKeyCreated(tag: tag.text))
-                                .value ??
-                            false;
+                // if (tag.text.isNotEmpty &&
+                //     plainText.text.isNotEmpty &&
+                //     appPassword.text.isNotEmpty) {
+                try {
+                  /// check if tag already on keychain
+                  final bool status =
+                      (await _secureEnclavePlugin.isKeyCreated(tag: tag.text))
+                              .value ??
+                          false;
 
-                    if (status == false) {
-                      /// create key on keychain
-                      ResultModel res =
-                          await _secureEnclavePlugin.generateKeyPair(
-                        accessControl: AccessControlModel(
-                          password: appPassword.text,
-                          options: [
-                            AccessControlOption.applicationPassword,
-                            // AccessControlOption.or,
-                            // AccessControlOption.devicePasscode,
-                            AccessControlOption.privateKeyUsage,
-                          ],
-                          tag: tag.text,
-                        ),
-                      );
+                  if (status == false) {
+                    /// create key on keychain
+                    ResultModel res =
+                        await _secureEnclavePlugin.generateKeyPair(
+                      accessControl: AccessControlModel(
+                        password: appPassword.text,
+                        options: [
+                          AccessControlOption.applicationPassword,
+                          // AccessControlOption.or,
+                          // AccessControlOption.devicePasscode,
+                          AccessControlOption.privateKeyUsage,
+                        ],
+                        tag: tag.text,
+                      ),
+                    );
 
-                      if (res.error != null) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(res.error!.desc.toString())));
-                      }
-                    }
-
-                    /// encrypt with app password
-                    ResultModel cipherUint8List =
-                        (await _secureEnclavePlugin.encrypt(
-                      message: plainText.text,
-                      tag: tag.text,
-                      password: appPassword.text,
-                    ));
-                    if (cipherUint8List.value != null) {
-                      cipherText.text =
-                          hex.encode(cipherUint8List.value).toString();
-                      setState(() {});
-                    } else {
+                    if (res.error != null) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content:
-                              Text(cipherUint8List.error!.desc.toString())));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(res.error!.desc.toString())));
                     }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(e.toString())));
-                    log(e.toString());
                   }
+
+                  /// encrypt with app password
+                  ResultModel cipherUint8List =
+                      (await _secureEnclavePlugin.encrypt(
+                    message: plainText.text,
+                    tag: tag.text,
+                    password: appPassword.text,
+                  ));
+                  if (cipherUint8List.value != null) {
+                    cipherText.text =
+                        hex.encode(cipherUint8List.value).toString();
+                    setState(() {});
+                  } else {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(cipherUint8List.error!.desc.toString())));
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(e.toString())));
+                  log(e.toString());
                 }
+                // }
               },
               child: const Text('Encrypt'),
             ),

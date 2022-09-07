@@ -99,48 +99,48 @@ class _SignatureVerifyState extends State<SignatureVerify> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (tag.text.isNotEmpty &&
-                    plainText.text.isNotEmpty &&
-                    appPassword.text.isNotEmpty) {
-                  try {
-                    /// check if tag already on keychain
-                    final bool status =
-                        (await _secureEnclavePlugin.isKeyCreated(tag: tag.text))
-                                .value ??
-                            false;
+                // if (tag.text.isNotEmpty &&
+                //     plainText.text.isNotEmpty &&
+                //     appPassword.text.isNotEmpty) {
+                try {
+                  /// check if tag already on keychain
+                  final bool status =
+                      (await _secureEnclavePlugin.isKeyCreated(tag: tag.text))
+                              .value ??
+                          false;
 
-                    if (status == false) {
-                      /// create key on keychain
-                      await _secureEnclavePlugin.generateKeyPair(
-                        accessControl: AccessControlModel(
-                          password: appPassword.text,
-                          options: [
-                            AccessControlOption.applicationPassword,
-                            // AccessControlOption.or,
-                            // AccessControlOption.devicePasscode,
-                            AccessControlOption.privateKeyUsage,
-                          ],
-                          tag: tag.text,
-                        ),
-                      );
-                    }
-
-                    /// sign with app password
-                    String signature = (await _secureEnclavePlugin.sign(
-                          message: Uint8List.fromList(plainText.text.codeUnits),
-                          tag: tag.text,
-                          password: appPassword.text,
-                        ))
-                            .value ??
-                        '';
-                    signatureText.text = signature.toString();
-                    setState(() {});
-                  } catch (e) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(e.toString())));
-                    log(e.toString());
+                  if (status == false) {
+                    /// create key on keychain
+                    await _secureEnclavePlugin.generateKeyPair(
+                      accessControl: AccessControlModel(
+                        password: appPassword.text,
+                        options: [
+                          AccessControlOption.applicationPassword,
+                          // AccessControlOption.or,
+                          // AccessControlOption.devicePasscode,
+                          AccessControlOption.privateKeyUsage,
+                        ],
+                        tag: tag.text,
+                      ),
+                    );
                   }
+
+                  /// sign with app password
+                  String signature = (await _secureEnclavePlugin.sign(
+                        message: Uint8List.fromList(plainText.text.codeUnits),
+                        tag: tag.text,
+                        password: appPassword.text,
+                      ))
+                          .value ??
+                      '';
+                  signatureText.text = signature.toString();
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(e.toString())));
+                  log(e.toString());
                 }
+                // }
               },
               child: const Text('Sign'),
             ),
