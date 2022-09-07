@@ -14,48 +14,76 @@ void main(){
 
   const String appPassword = "1234";
 
-  testWidgets("create Key", (widgetTester) async {
 
-    blankApp("Test create key");
-    await widgetTester.pumpAndSettle();
+  group("Create all key", () {
 
-    SecureEnclave secureEnclave = SecureEnclave();
-    await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagNormal, options: [AccessControlOption.privateKeyUsage])).then((result){
-      checkResult(
-          result: result,
-          onSuccess: (){
-            print('Tag Normal created...');
-            expect(result.value, true);
-          });
+    testWidgets("create Normal Key", (widgetTester) async {
+
+      blankApp("Test create key");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagNormal, options: [AccessControlOption.privateKeyUsage])).then((result){
+        checkResult(
+            result: result,
+            onSuccess: (){
+              print('Tag Normal created...');
+              expect(result.value, true);
+            });
+      });
     });
 
-    await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet])).then((result){
-      checkResult(
-          result: result,
-          onSuccess: (){
-            print('Tag Biometry created...');
-            expect(result.value, true);
-          });
+    testWidgets("create Biometry Key", (widgetTester) async {
+
+      blankApp("Test create key");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+
+      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet])).then((result){
+        checkResult(
+            result: result,
+            onSuccess: (){
+              print('Tag Biometry created...');
+              expect(result.value, true);
+            });
+      });
     });
 
-    await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPassword, options: [AccessControlOption.privateKeyUsage, AccessControlOption.applicationPassword], password: appPassword)).then((result){
-      checkResult(
-          result: result,
-          onSuccess: (){
-            print('Tag Password created...');
-            expect(result.value, true);
-          });
+    testWidgets("create Password Key", (widgetTester) async {
+
+      blankApp("Test create key");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+
+      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPassword, options: [AccessControlOption.privateKeyUsage, AccessControlOption.applicationPassword], password: appPassword)).then((result){
+        checkResult(
+            result: result,
+            onSuccess: (){
+              print('Tag Password created...');
+              expect(result.value, true);
+            });
+      });
     });
 
-    await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPasswordBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet, AccessControlOption.applicationPassword], password: appPassword)).then((result){
-      checkResult(
-          result: result,
-          onSuccess: (){
-            print('Tag Biometry Password created...');
-            expect(result.value, true);
-          });
-    });
+    testWidgets("create Biometry Password Key", (widgetTester) async {
 
+      blankApp("Test create key");
+      await widgetTester.pumpAndSettle();
+
+      SecureEnclave secureEnclave = SecureEnclave();
+
+      await secureEnclave.generateKeyPair(accessControl: AccessControlModel(tag: tagPasswordBiometric, options: [AccessControlOption.privateKeyUsage, AccessControlOption.biometryCurrentSet, AccessControlOption.applicationPassword], password: appPassword)).then((result){
+        checkResult(
+            result: result,
+            onSuccess: (){
+              print('Tag Biometry Password created...');
+              expect(result.value, true);
+            });
+      });
+
+    });
   });
 
   group('Normal Encrypt Decrypt', () {
@@ -80,7 +108,6 @@ void main(){
 
 
     testWidgets("normal decrypt", (widgetTester) async{
-
       if(encrypted == null || encrypted!.isEmpty){
         throw("Encrypted Text null or empty. abort...");
       }
